@@ -1,0 +1,2 @@
+# Motor de base de datos de las migraciones.
+provider = "postgresql"
