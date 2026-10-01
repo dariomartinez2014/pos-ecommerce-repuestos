@@ -35,7 +35,7 @@ Nest ejecuta middleware, Guards, interceptores y Pipes según su ciclo de vida. 
 | Migración | prisma/migrations/202609290001_initial/migration.sql | Tablas, relaciones y restricciones |
 | Swagger | src/setup.ts y src/common/openapi.ts | Entradas, respuestas y autenticación |
 
-## Las 11 tablas
+## Las 12 tablas
 
 users, categories y products representan identidad y catálogo. addresses guarda destinos reutilizables. carts y cart_items describen la compra en preparación. orders y order_items conservan lo vendido. payments registra el pago. cash_sessions agrupa ventas físicas. inventory_movements explica cambios de stock.
 
@@ -104,3 +104,7 @@ WEB/SOCIAL: PENDING → PAID → IN_TRANSIT → DELIVERED. ADMIN registra pago c
 
 Conviene entender el recorrido del código y poder predecir sus resultados, además de responder las preguntas.
 
+
+## Integración MockPay
+
+Consulta docs/MOCKPAY.md para crear intenciones, probar tarjetas ficticias y verificar pagos. La tabla gateway_attempts conserva su correlación; la llave secreta permanece en .env. El registro de pago CARD puede proceder de una aprobación verificada de la pasarela.

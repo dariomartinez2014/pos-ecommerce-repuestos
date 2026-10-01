@@ -1,4 +1,4 @@
-# SINCRONIZACIÓN: ejecuta este archivo en tu propia consola para conectar el historial local.
+﻿# SINCRONIZACIÓN: ejecuta este archivo en tu propia consola para conectar el historial local.
 # La subida inicial se realizó por la API de GitHub; este entorno protege la carpeta .git.
 $ErrorActionPreference = 'Stop'
 $projectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))

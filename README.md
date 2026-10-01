@@ -6,7 +6,7 @@ Repositorio privado: [pos-ecommerce-repuestos](https://github.com/dariomartinez2
 
 ## Estado
 
-Implementado con NestJS, TypeScript, PostgreSQL, Prisma, Passport/JWT y Swagger. Incluye 11 tablas, migración, datos de demostración, pruebas de integración y comentarios en español. La publicación en Render y Supabase queda pendiente y es obligatoria para la entrega final del curso.
+Implementado con NestJS, TypeScript, PostgreSQL, Prisma, Passport/JWT y Swagger. Incluye 12 tablas, migración, datos de demostración, pruebas de integración y comentarios en español. La publicación en Render y Supabase queda pendiente y es obligatoria para la entrega final del curso.
 
 ## Inicio local en Windows
 
@@ -98,3 +98,7 @@ src/auth, catalog, addresses, sales y cash agrupan cada área en módulos, contr
 - docs/PUBLICACION-PENDIENTE.md: siguiente etapa.
 
 Esta entrega corresponde a la API del curso. Interfaz visual, pasarela bancaria, reembolsos y mejoras comerciales podrán agregarse después de la publicación requerida.
+
+## Integración MockPay
+
+Consulta docs/MOCKPAY.md para crear intenciones, probar tarjetas ficticias y verificar pagos. La tabla gateway_attempts conserva su correlación; la llave secreta permanece en .env. El registro de pago CARD puede proceder de una aprobación verificada de la pasarela.

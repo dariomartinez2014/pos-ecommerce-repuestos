@@ -65,3 +65,17 @@ GET/PUT/PATCH/DELETE devuelven 200. POST devuelve 201, excepto login (200). Baja
 
 Listados paginados: data, total, page y limit. El catálogo público omite acquisitionCost; pedidos y carritos omiten unitCost. CARD y TRANSFER describen pagos verificados administrativamente, sin conexión automática con un banco. Importes JSON en cadenas decimales y moneda GTQ.
 
+
+## MockPay
+
+| Método | Ruta | Permiso |
+| --- | --- | --- |
+| POST | /orders/:id/mockpay | ADMIN o CUSTOMER dueño; WEB/SOCIAL pendiente |
+| GET | /orders/:id/mockpay | ADMIN o CUSTOMER dueño |
+| POST | /orders/:id/mockpay/sync | ADMIN o CUSTOMER dueño; verifica proveedor |
+| POST | /orders/:id/mockpay/demo | Mismo permiso; solo development/test, escenarios ficticios |
+| POST | /mockpay/webhook | Público; reconsulta proveedor y verifica la transacción |
+| GET | /mockpay/return | Público; información, no confirma pago |
+| GET | /mockpay/cancel | Público; información, no cancela pedido |
+
+Consultar docs/MOCKPAY.md. El pago manual y la cancelación rechazan pedidos con intento de pasarela activo.

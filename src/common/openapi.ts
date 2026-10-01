@@ -48,6 +48,12 @@ export function documentResponses(doc: OpenAPIObject) {
     ['get', '/api/orders', 'OrdersPage'], ['get', '/api/orders/{id}', 'Order'], ['post', '/api/orders/{id}/payment', 'Order'], ['patch', '/api/orders/{id}/status', 'Order'], ['post', '/api/orders/{id}/cancel', 'Order'],
     ['get', '/api/cash-sessions', 'CashSession', true], ['post', '/api/cash-sessions', 'CashSession'], ['get', '/api/cash-sessions/{id}', 'CashReport'], ['post', '/api/cash-sessions/{id}/close', 'CashReport'],
   ];
+  // RUTAS DE PASARELA: preservan su respuesta específica y comparten los errores normalizados.
+  for (const [path, item] of Object.entries(doc.paths)) for (const method of ['get', 'post'] as const) {
+    const operation = item[method];
+    if (!operation || !path.includes('mockpay')) continue;
+    for (const code of ['400','401','403','404','409','429','500','502','503']) operation.responses[code] = { description: 'Error de validación, acceso, estado o comunicación con MockPay', content: { 'application/json': { schema: ref('ApiError') } } };
+  }
   for (const [method, path, name, isArray] of routes) {
     const operation = doc.paths[path]?.[method as 'get' | 'post' | 'patch' | 'put' | 'delete'];
     if (!operation) throw new Error(`Ruta Swagger no encontrada: ${method} ${path}`);

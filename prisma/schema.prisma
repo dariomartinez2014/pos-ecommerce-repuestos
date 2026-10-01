@@ -200,6 +200,7 @@ model Order {
   items OrderItem[] @relation("OrderItem_order")
   payment Payment? @relation("Payment_order")
   movements InventoryMovement[] @relation("InventoryMovement_order")
+  gatewayAttempts GatewayAttempt[]
   @@index([customerId, createdAt])
   @@index([channel, status, createdAt])
   @@index([cashSessionId])
@@ -251,3 +252,18 @@ model InventoryMovement {
   @@index([productId, createdAt])
   @@map("inventory_movements")
 }
+
+// PASARELA: guarda intentos y su correlación; nunca números de tarjeta ni la llave secreta.
+model GatewayAttempt {
+  id String @id @default(uuid()) @db.Uuid
+  orderId Int @map("order_id")
+  order Order @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  gatewayId String? @unique @map("gateway_id")
+  checkoutUrl String? @map("checkout_url")
+  status String @default("CREATING") @db.VarChar(20)
+  createdAt DateTime @default(now()) @db.Timestamptz(3) @map("created_at")
+  updatedAt DateTime @updatedAt @db.Timestamptz(3) @map("updated_at")
+  @@index([orderId])
+  @@map("gateway_attempts")
+}
+

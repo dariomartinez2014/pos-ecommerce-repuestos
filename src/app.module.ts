@@ -11,6 +11,7 @@ import { CatalogModule } from './catalog/catalog.module';
 import { AddressesModule } from './addresses/addresses.module';
 import { SalesModule } from './sales/sales.module';
 import { CashModule } from './cash/cash.module';
+import { MockPayModule } from './mockpay/mockpay.module';
 
 @ApiTags('Estado') @Controller('health')
 class HealthController {
@@ -25,7 +26,8 @@ class HealthController {
     DATABASE_URL: Joi.string().required(), JWT_SECRET: Joi.string().min(32).required(),
     PORT: Joi.number().port().default(3000), NODE_ENV: Joi.string().valid('development', 'production', 'test').default('development'),
     CORS_ORIGINS: Joi.string().allow('').default(''), STORE_CURRENCY: Joi.string().valid('GTQ').default('GTQ'),
-  }) }), ThrottlerModule.forRoot([{ ttl: 60000, limit: 300 }]), PrismaModule, AuthModule, CatalogModule, AddressesModule, SalesModule, CashModule],
+    MOCKPAY_API_URL: Joi.string().uri().default('https://mockpay-backend.onrender.com'), MOCKPAY_SECRET_KEY: Joi.string().allow('').optional(),
+  }) }), ThrottlerModule.forRoot([{ ttl: 60000, limit: 300 }]), PrismaModule, AuthModule, CatalogModule, AddressesModule, SalesModule, CashModule, MockPayModule],
   controllers: [HealthController],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }, { provide: APP_GUARD, useClass: JwtGuard }, { provide: APP_GUARD, useClass: RolesGuard }],
 })

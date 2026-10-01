@@ -35,3 +35,9 @@ También se validó el schema Prisma, se generó el cliente y se aplicó la migr
 
 La suite cubre reglas prioritarias del alcance y carreras concretas. No constituye prueba de carga de producción. La publicación Render/Supabase y la verificación remota todavía están pendientes. Los pagos CARD/TRANSFER son registros administrativos, sin integración bancaria. El uso visual de Swagger se comprueba por separado.
 
+
+## Actualización: 1 de octubre de 2026
+
+15 comprobaciones aprobadas y cero fallos (14 casos y su prueba contenedora), con MockPay. Se verificaron creación concurrente sin duplicar intención, enlaces con una barra, propiedad, notificación falsificada, total remoto distinto, éxito repetido, rechazo y resultado incierto.
+
+Prueba externa del sandbox: un pedido de demostración en GTQ fue aprobado por MockPay y sincronizado dos veces, conservando un único pago. También se identificó el error del formulario externo con espacios en tarjeta; docs/MOCKPAY.md explica la alternativa desde Swagger.

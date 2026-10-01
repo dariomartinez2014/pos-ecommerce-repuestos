@@ -1,6 +1,6 @@
 # Diagrama entidad-relación
 
-11 tablas con tipos, llaves y cardinalidades. GitHub representa el bloque Mermaid; diagrama.dbml es la versión editable para dbdiagram.io.
+12 tablas con tipos, llaves y cardinalidades. GitHub representa el bloque Mermaid; diagrama.dbml es la versión editable para dbdiagram.io.
 
 ~~~mermaid
 erDiagram
@@ -109,6 +109,15 @@ erDiagram
     text reason "nullable"
     timestamptz created_at
   }
+  gateway_attempts {
+    text id PK
+    int order_id FK
+    text gateway_id UK "nullable"
+    text checkout_url "nullable"
+    varchar_20 status
+    timestamptz created_at
+    timestamptz updated_at
+  }
   categories ||--o{ products : "categoryId"
   users ||--o{ addresses : "userId"
   users ||--o{ carts : "createdById"
@@ -128,6 +137,7 @@ erDiagram
   products ||--o{ inventory_movements : "productId"
   orders o|--o{ inventory_movements : "orderId"
   users ||--o{ inventory_movements : "actorId"
+  orders ||--o{ gateway_attempts : "orderId"
 ~~~
 
 Carrito–pedido y pedido–pago son uno a cero o uno. Los pares carrito/producto y pedido/producto son únicos. Enums en el schema; CHECK e índice parcial de caja en la migración.

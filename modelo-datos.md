@@ -1,6 +1,6 @@
 # Modelo de datos implementado
 
-Modelo de 11 tablas. Los roles, canales y estados son enums; no se crean tablas artificiales únicamente para alcanzar el mínimo.
+Modelo de 12 tablas. Los roles, canales y estados son enums; no se crean tablas artificiales únicamente para alcanzar el mínimo.
 
 | Tabla | Responsabilidad |
 |---|---|
@@ -49,3 +49,7 @@ El DBML describe columnas, llaves y cardinalidades; no implementa por sí solo t
 - Evitar carreras entre cierre de caja y cobros, y entre compras de las últimas unidades.
 
 Implementado en prisma/schema.prisma. La migración inicial crea tablas, relaciones, CHECK e índices; fue aplicada en PostgreSQL local y registrada por el motor Prisma. Diagrama completo: docs/DER.md.
+
+## Integración MockPay
+
+Consulta docs/MOCKPAY.md para crear intenciones, probar tarjetas ficticias y verificar pagos. La tabla gateway_attempts conserva su correlación; la llave secreta permanece en .env. El registro de pago CARD puede proceder de una aprobación verificada de la pasarela.

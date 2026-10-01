@@ -123,6 +123,7 @@ export class SalesService {
       const order = await tx.order.findUnique({ where: { id } });
       if (!order) throw new NotFoundException();
       if (order.channel === 'POS' || order.status !== 'PENDING') throw new ConflictException('El pedido no admite este pago');
+      if (await tx.gatewayAttempt.findFirst({ where: { orderId: id, status: { in: ['CREATING', 'PENDING', 'UNKNOWN'] } } })) throw new ConflictException('Hay un cobro MockPay activo; sincroniza su resultado antes de registrar otro pago');
       await tx.payment.create({ data: { orderId: id, recordedById: actor.id, method: dto.method, reference: dto.reference, amount: order.total } });
       return tx.order.update({ where: { id }, data: { status: 'PAID' }, include: orderView });
     });
@@ -142,6 +143,7 @@ export class SalesService {
       const order = await tx.order.findUniqueOrThrow({ where: { id }, include: { items: { orderBy: { productId: 'asc' } }, payment: true } });
       if (order.status === 'CANCELLED') return tx.order.findUniqueOrThrow({ where: { id }, include: orderView });
       if (order.channel === 'POS' || order.status !== 'PENDING' || order.payment) throw new ConflictException('Solo se cancelan pedidos pendientes sin pago');
+      if (await tx.gatewayAttempt.findFirst({ where: { orderId: id, status: { in: ['CREATING', 'PENDING', 'UNKNOWN'] } } })) throw new ConflictException('Hay un cobro MockPay activo; sincroniza antes de cancelar');
       for (const line of order.items) {
         await tx.product.update({ where: { id: line.productId }, data: { stock: { increment: line.quantity } } });
         await tx.inventoryMovement.create({ data: { productId: line.productId, orderId: id, actorId: actor.id, type: 'CANCELLATION', quantityDelta: line.quantity, reason: 'Cancelación de pedido pendiente' } });

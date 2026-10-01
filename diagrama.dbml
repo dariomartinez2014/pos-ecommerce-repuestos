@@ -173,3 +173,15 @@ Table inventory_movements {
   reason text
   created_at timestamptz [not null, default: `now()`]
 }
+
+// PASARELA: la tarjeta se introduce en el sandbox y no se almacena aquí.
+Table gateway_attempts {
+ id uuid [pk]
+ order_id integer [not null]
+ gateway_id text [unique]
+ checkout_url text
+ status varchar(20) [not null, default: 'CREATING']
+ created_at timestamptz [not null]
+ updated_at timestamptz [not null]
+}
+Ref: gateway_attempts.order_id > orders.id

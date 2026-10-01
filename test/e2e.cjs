@@ -24,7 +24,7 @@ test('POS y e-commerce: reglas completas contra PostgreSQL', async t => {
   const base = await app.getUrl();
   try {
     // Limpieza exclusiva del entorno de pruebas, validado antes de arrancar.
-    await db.$executeRawUnsafe('TRUNCATE inventory_movements, payments, order_items, orders, cart_items, carts, addresses, cash_sessions, products, categories, users RESTART IDENTITY CASCADE');
+    await db.$executeRawUnsafe('TRUNCATE gateway_attempts, inventory_movements, payments, order_items, orders, cart_items, carts, addresses, cash_sessions, products, categories, users RESTART IDENTITY CASCADE');
     const password = 'PruebaSegura123!';
     const admin = await db.user.create({ data: { name: 'Admin Test', email: 'admin@test.local', passwordHash: await hash(password, 10), role: 'ADMIN' } });
     async function req(method, path, body, token, expected) {
@@ -159,6 +159,68 @@ test('POS y e-commerce: reglas completas contra PostgreSQL', async t => {
       const other = await db.user.findUnique({ where: { email: 'other@test.local' } });
       await req('PATCH', `/users/${other.id}/active`, { active: false }, a, 200);
       await req('GET', '/auth/me', undefined, c2, 401);
+    });
+    await t.test('MockPay: enlaces, propiedad, verificación externa y notificaciones idempotentes', async () => {
+      // El caso anterior desactivó esta cuenta; restaurarla para comprobar propiedad.
+      await db.user.update({ where: { email: 'other@test.local' }, data: { active: true } });
+      const { MockPayClient, singleSlash } = require('../dist/mockpay/mockpay.client');
+      const gateway = app.get(MockPayClient);
+      const originalCreate = gateway.create.bind(gateway);
+      const originalGet = gateway.get.bind(gateway);
+      const originalDemo = gateway.processDemo.bind(gateway);
+      const remote = new Map();
+      let calls = 0;
+      gateway.create = async (amount, metadata) => {
+        calls++;
+        const id = require('node:crypto').randomUUID();
+        remote.set(id, { id, amount, currency: 'GTQ', metadata, status: 'PENDING' });
+        return { id_transaccion: id, checkout_url: 'https://mockpay-frontend.vercel.app//checkout/' + id };
+      };
+      gateway.get = async id => ({ ...remote.get(id) });
+      gateway.processDemo = async (id, scenario) => { remote.get(id).status = scenario === 'SUCCESS' ? 'SUCCEEDED' : 'FAILED'; return remote.get(id); };
+      try {
+        assert.equal(singleSlash('https://mockpay-backend.onrender.com//api/v1/payments'), 'https://mockpay-backend.onrender.com/api/v1/payments');
+        const x = await cart(c, 'WEB', [[product.id, 1]]);
+        const o = (await req('POST', '/carts/' + x.id + '/checkout', { idempotencyKey: 'mockpay-order-001', addressId: address.id }, c, 201)).body;
+        await req('POST', '/orders/' + o.id + '/mockpay', {}, c2, 403);
+        const results = await Promise.all([req('POST', '/orders/' + o.id + '/mockpay', {}, c), req('POST', '/orders/' + o.id + '/mockpay', {}, c)]);
+        assert.ok(results.some(r => r.status === 201));
+        assert.equal(calls, 1);
+        const attempt = (await req('GET', '/orders/' + o.id + '/mockpay', undefined, c, 200)).body;
+        assert.ok(!attempt.checkoutUrl.includes('app//'));
+        await req('POST', '/orders/' + o.id + '/payment', { method: 'CASH' }, a, 409);
+        await req('POST', '/orders/' + o.id + '/cancel', {}, c, 409);
+        // Una notificación falsificada no cambia PENDING: manda la respuesta real del proveedor.
+        await req('POST', '/mockpay/webhook', { id: attempt.gatewayId, status: 'SUCCEEDED' }, null, 201);
+        assert.equal((await db.order.findUnique({ where: { id: o.id } })).status, 'PENDING');
+        remote.get(attempt.gatewayId).status = 'SUCCEEDED';
+        remote.get(attempt.gatewayId).amount = 0.01;
+        await req('POST', '/orders/' + o.id + '/mockpay/sync', {}, c, 502);
+        assert.equal(await db.payment.count({ where: { orderId: o.id } }), 0);
+        remote.get(attempt.gatewayId).amount = 30;
+        await req('POST', '/orders/' + o.id + '/mockpay/sync', {}, c, 201);
+        await req('POST', '/mockpay/webhook', { id: attempt.gatewayId, event: 'payment.succeeded' }, null, 201);
+        assert.equal(await db.payment.count({ where: { orderId: o.id } }), 1);
+        assert.equal((await db.order.findUnique({ where: { id: o.id } })).status, 'PAID');
+        const y = await cart(c, 'WEB', [[product.id, 1]]);
+        const failedOrder = (await req('POST', '/carts/' + y.id + '/checkout', { idempotencyKey: 'mockpay-failed-001', addressId: address.id }, c, 201)).body;
+        const failed = (await req('POST', '/orders/' + failedOrder.id + '/mockpay', {}, c, 201)).body;
+        const config = app.get(require('@nestjs/config').ConfigService);
+        const mode = config.get('NODE_ENV');
+        config.set('NODE_ENV', 'production');
+        await req('POST', '/orders/' + failedOrder.id + '/mockpay/demo', { scenario: 'SUCCESS' }, c, 403);
+        config.set('NODE_ENV', mode);
+        await req('POST', '/orders/' + failedOrder.id + '/mockpay/demo', { scenario: 'INSUFFICIENT_FUNDS' }, c, 201);
+        assert.equal(await db.payment.count({ where: { orderId: failedOrder.id } }), 0);
+        await req('POST', '/orders/' + failedOrder.id + '/cancel', {}, c, 201);
+        // Un resultado de creación incierto bloquea reintentos que podrían duplicar intenciones.
+        const z = await cart(c, 'WEB', [[product.id, 1]]);
+        const uncertain = (await req('POST', '/carts/' + z.id + '/checkout', { idempotencyKey: 'mockpay-unknown-001', addressId: address.id }, c, 201)).body;
+        gateway.create = async () => { throw new (require('@nestjs/common').BadGatewayException)('Timeout de prueba'); };
+        await req('POST', '/orders/' + uncertain.id + '/mockpay', {}, c, 502);
+        await req('POST', '/orders/' + uncertain.id + '/mockpay', {}, c, 409);
+        assert.equal(await db.gatewayAttempt.count({ where: { orderId: uncertain.id } }), 1);
+      } finally { gateway.create = originalCreate; gateway.get = originalGet; gateway.processDemo = originalDemo; }
     });
     await t.test('Stock coincide con movimientos y Swagger documenta rutas', async () => {
       for (const p of await db.product.findMany()) {
