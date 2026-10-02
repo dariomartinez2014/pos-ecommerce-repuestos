@@ -41,3 +41,7 @@ La suite cubre reglas prioritarias del alcance y carreras concretas. No constitu
 15 comprobaciones aprobadas y cero fallos (14 casos y su prueba contenedora), con MockPay. Se verificaron creación concurrente sin duplicar intención, enlaces con una barra, propiedad, notificación falsificada, total remoto distinto, éxito repetido, rechazo y resultado incierto.
 
 Prueba externa del sandbox: un pedido de demostración en GTQ fue aprobado por MockPay y sincronizado dos veces, conservando un único pago. También se identificó el error del formulario externo con espacios en tarjeta; docs/MOCKPAY.md explica la alternativa desde Swagger.
+
+## Verificación del entorno publicado
+
+La API en Render y PostgreSQL en Supabase aprobaron 17 comprobaciones públicas: catálogo, identidad, permisos de cliente, checkout idempotente, inventario, MockPay aprobado/rechazado, sincronización repetida y cancelación. El informe no incluye contraseñas ni tarjetas. Consulta ENTREGA-PUBLICA.md para el alcance y los pendientes de roles ADMIN/CASHIER.

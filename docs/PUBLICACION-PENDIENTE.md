@@ -1,6 +1,6 @@
 # Publicación pendiente
 
-La versión local se prepara antes de publicar, como indicó el estudiante. El curso requiere una API en Render y PostgreSQL en Supabase con datos de prueba. Esa publicación todavía está pendiente.
+La publicación requerida ya está realizada: API en Render, PostgreSQL en Supabase, datos de demostración y comercio MockPay con URLs públicas. Consulta ENTREGA-PUBLICA.md para el estado verificado y las pruebas pendientes de administración/caja.
 
 1. Crear la cuenta y el proyecto Supabase y guardar su conexión privada.
 2. Subir el código al repositorio GitHub.
@@ -10,6 +10,6 @@ La versión local se prepara antes de publicar, como indicó el estudiante. El c
 6. Verificar catálogo, login, checkout, roles, caja y Swagger desde la URL pública.
 7. Actualizar README con enlaces y preparar accesos para evaluación.
 
-Los comandos estándar ya existen: npm ci, prisma:generate, db:deploy, build, db:seed y start. Revisaremos la configuración vigente al crear los servicios.
+La lista anterior documenta la secuencia de publicación completada. Los comandos vigentes y los enlaces se encuentran en ENTREGA-PUBLICA.md.
 
-Después podremos agregar interfaz visual, búsqueda por vehículo, imágenes, favoritos, avisos de stock y reportes de utilidad. Los pagos actuales se registran administrativamente y el envío queda fuera del total.
+Después podremos agregar interfaz visual, búsqueda por vehículo, imágenes, favoritos, avisos de stock y reportes de utilidad. Los pagos pueden registrarse administrativamente o mediante MockPay verificado; el envío queda fuera del total.

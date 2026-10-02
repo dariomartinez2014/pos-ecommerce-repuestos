@@ -6,7 +6,13 @@ Repositorio privado: [pos-ecommerce-repuestos](https://github.com/dariomartinez2
 
 ## Estado
 
-Implementado con NestJS, TypeScript, PostgreSQL, Prisma, Passport/JWT y Swagger. Incluye 12 tablas, migración, datos de demostración, pruebas de integración y comentarios en español. La publicación en Render y Supabase queda pendiente y es obligatoria para la entrega final del curso.
+Implementado con NestJS, TypeScript, PostgreSQL, Prisma, Passport/JWT y Swagger. Incluye 12 tablas, migraciones, datos de demostración, pruebas de integración y comentarios en español. Publicado en Render con PostgreSQL en Supabase y MockPay configurado para las direcciones públicas.
+
+- [Swagger público](https://pos-ecommerce-repuestos.onrender.com/api/docs)
+- [Estado del servidor y PostgreSQL](https://pos-ecommerce-repuestos.onrender.com/api/health)
+- [Catálogo de repuestos](https://pos-ecommerce-repuestos.onrender.com/api/products)
+
+Validación: 15 comprobaciones de integración locales y 17 comprobaciones públicas de catálogo, identidad, compra WEB, pagos ficticios y cancelación. Las pruebas públicas de administración, logística y caja todavía requieren los accesos del entorno publicado. Consulta docs/ENTREGA-PUBLICA.md.
 
 ## Inicio local en Windows
 
@@ -95,7 +101,7 @@ src/auth, catalog, addresses, sales y cash agrupan cada área en módulos, contr
 - docs/DER.md y diagrama.dbml: diagrama y versión editable.
 - modelo-datos.md y requerimientos.md: diseño y alcance.
 - docs/PRUEBAS.md: verificaciones y límites.
-- docs/PUBLICACION-PENDIENTE.md: siguiente etapa.
+- docs/ENTREGA-PUBLICA.md: publicación, comandos y verificaciones pendientes.
 
 Esta entrega corresponde a la API del curso. Interfaz visual, pasarela bancaria, reembolsos y mejoras comerciales podrán agregarse después de la publicación requerida.
 

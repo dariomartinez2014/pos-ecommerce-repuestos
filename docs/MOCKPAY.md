@@ -54,3 +54,9 @@ POS continúa usando caja y pagos presenciales. El pago manual sigue disponible 
 ## Código
 
 src/mockpay contiene módulo, cliente HTTP, servicio, controladores y DTOs. La migración 202610010001_mockpay crea tabla e índice parcial. Las pruebas cubren propiedad, enlaces, concurrencia de creación, importes falsos, notificaciones repetidas, rechazo y timeout.
+
+## Entorno publicado
+
+La API pública es https://pos-ecommerce-repuestos.onrender.com/api. El comercio público está registrado con /mockpay/return, /mockpay/cancel y /mockpay/webhook bajo esa dirección. La clave está configurada en Render y su copia privada permanece en .local/mockpay-publico.env, excluida de GitHub.
+
+Se comprobaron pagos ficticios SUCCESS e INSUFFICIENT_FUNDS contra la pasarela y la API pública; se repitió sync sin duplicar pagos. La ruta /orders/:id/mockpay/demo devuelve 403 en producción. Las pruebas procesaron las tarjetas ficticias directamente con la API del simulador: no se confirma reparación del formulario externo que agrega espacios. Consulta ENTREGA-PUBLICA.md.
