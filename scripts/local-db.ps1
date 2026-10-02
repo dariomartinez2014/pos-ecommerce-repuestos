@@ -1,4 +1,6 @@
-﻿# POSTGRESQL LOCAL: administra únicamente el clúster de este proyecto, en .local/postgres.
+﻿# ARCHIVO: Inicializa, inicia o detiene únicamente el clúster PostgreSQL propio del proyecto.
+# ESTUDIO: pasos y bloques explicados en docs/GUIA-CODIGO-COMPLETA.md.
+# POSTGRESQL LOCAL: administra únicamente el clúster de este proyecto, en .local/postgres.
 param([ValidateSet('Start', 'Stop')][string]$Action = 'Start', [string]$PgBin = '')
 $ErrorActionPreference = 'Stop'
 $projectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))

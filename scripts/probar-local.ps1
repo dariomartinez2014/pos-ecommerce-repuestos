@@ -1,4 +1,6 @@
-﻿# PRUEBAS: usa una base exclusiva terminada en _test y preserva la demostración.
+﻿# ARCHIVO: Prepara la base exclusiva de pruebas y ejecuta e2e sin limpiar la base de demostración.
+# ESTUDIO: pasos y bloques explicados en docs/GUIA-CODIGO-COMPLETA.md.
+# PRUEBAS: usa una base exclusiva terminada en _test y preserva la demostración.
 param([switch]$EngineFallback)
 $ErrorActionPreference = 'Stop'
 $projectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))

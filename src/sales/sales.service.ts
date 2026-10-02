@@ -1,3 +1,5 @@
+// ARCHIVO: Centraliza carritos, checkout, pedidos, pagos administrativos, estados y cancelación en transacciones.
+// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
 import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { PrismaService } from '../prisma/prisma.service';
@@ -9,10 +11,13 @@ import { Prisma } from '../generated/prisma/client';
 const cartView = { items: { include: { product: { select: { id: true, name: true, sku: true, salePrice: true, stock: true, active: true } } } } } as const;
 const orderView = { items: { select: { id: true, productId: true, productName: true, quantity: true, unitPrice: true } }, payment: true } as const;
 
+// CLASE SalesService: Centraliza carritos, checkout, pedidos, pagos administrativos, estados y cancelación en transacciones.
 @Injectable()
 export class SalesService {
+  // BLOQUE constructor: Inyecta las dependencias necesarias; NestJS proporciona estas instancias al construir la clase.
   constructor(private readonly prisma: PrismaService) {}
   // PROPIEDAD: ningún usuario modifica el carrito creado por otra persona.
+  // BLOQUE ownCart: Comprueba existencia, dueño y, cuando corresponde, estado OPEN del carrito.
   private async ownCart(tx: Prisma.TransactionClient, id: number, actor: Actor, open = false) {
     const cart = await tx.cart.findUnique({ where: { id } });
     if (!cart) throw new NotFoundException('Carrito no encontrado');
@@ -20,14 +25,17 @@ export class SalesService {
     if (open && cart.status !== 'OPEN') throw new ConflictException('El carrito ya fue cerrado');
     return cart;
   }
+  // BLOQUE createCart: Restringe el canal por rol y registra el dueño; todavía no reserva inventario.
   createCart(dto: CartDto, actor: Actor) {
     if ((actor.role === 'CUSTOMER' && dto.channel !== 'WEB') || (actor.role === 'CASHIER' && dto.channel !== 'POS') || (actor.role === 'ADMIN' && dto.channel === 'WEB')) throw new ForbiddenException('Canal no permitido para este rol');
     return this.prisma.cart.create({ data: { channel: dto.channel, createdById: actor.id, customerId: actor.role === 'CUSTOMER' ? actor.id : null } });
   }
+  // BLOQUE cart: Comprueba propiedad y devuelve el carrito con productos seleccionados de forma segura.
   async cart(id: number, actor: Actor) {
     await this.ownCart(this.prisma, id, actor);
     return this.prisma.cart.findUniqueOrThrow({ where: { id }, include: cartView });
   }
+  // BLOQUE setItem: Bloquea el carrito en transacción y crea o reemplaza la cantidad mediante upsert.
   async setItem(id: number, dto: CartItemDto, actor: Actor) {
     return this.prisma.$transaction(async tx => {
       // BLOQUEO: serializa edición y checkout del mismo carrito.
@@ -38,6 +46,7 @@ export class SalesService {
       return tx.cart.findUniqueOrThrow({ where: { id }, include: cartView });
     });
   }
+  // BLOQUE removeItem: Bloquea un carrito abierto y retira su línea sin modificar las existencias del producto.
   async removeItem(id: number, productId: number, actor: Actor) {
     return this.prisma.$transaction(async tx => {
       await tx.$queryRaw`SELECT id FROM carts WHERE id = ${id} FOR UPDATE`;
@@ -47,6 +56,7 @@ export class SalesService {
     });
   }
   // CONFIRMACIÓN ATÓMICA: pedido + detalles + stock + movimientos + pago POS.
+  // BLOQUE checkout: Valida canal/dirección/caja, bloquea productos, calcula total con Decimal y guarda pedido, stock, movimientos y pago POS de forma atómica.
   async checkout(id: number, dto: CheckoutDto, actor: Actor) {
     return this.prisma.$transaction(async tx => {
       await tx.$queryRaw`SELECT id FROM carts WHERE id = ${id} FOR UPDATE`;
@@ -96,6 +106,7 @@ export class SalesService {
       return tx.order.findUniqueOrThrow({ where: { id: order.id }, include: orderView });
     }, { timeout: 15000 });
   }
+  // BLOQUE list: Filtra pedidos por dueño/rol, canal, estado y día UTC-6, con paginación.
   async list(q: OrdersQuery, actor: Actor) {
     const where: Prisma.OrderWhereInput = { channel: q.channel, status: q.status };
     if (actor.role === 'CUSTOMER') where.customerId = actor.id;
@@ -109,6 +120,7 @@ export class SalesService {
     ]);
     return { data, total, page: q.page, limit: q.limit };
   }
+  // BLOQUE get: Busca el pedido y comprueba permiso de dueño, cajero o administrador.
   async get(id: number, actor: Actor) {
     const order = await this.prisma.order.findUnique({ where: { id }, include: orderView });
     if (!order) throw new NotFoundException('Pedido no encontrado');
@@ -117,6 +129,7 @@ export class SalesService {
     return order;
   }
   // COBRO WEB/SOCIAL: registro administrativo; el cliente no puede declararse pagado.
+  // BLOQUE pay: Registra el importe completo del pedido pendiente WEB/SOCIAL; bloquea un cobro manual cuando MockPay aún tiene un intento activo.
   async pay(id: number, dto: PaymentDto, actor: Actor) {
     return this.prisma.$transaction(async tx => {
       await tx.$queryRaw`SELECT id FROM orders WHERE id = ${id} FOR UPDATE`;
@@ -128,6 +141,7 @@ export class SalesService {
       return tx.order.update({ where: { id }, data: { status: 'PAID' }, include: orderView });
     });
   }
+  // BLOQUE transition: Solo permite PAID → IN_TRANSIT → DELIVERED mediante una actualización condicional.
   async transition(id: number, status: 'IN_TRANSIT' | 'DELIVERED') {
     return this.prisma.$transaction(async tx => {
       const changed = await tx.order.updateMany({ where: { id, channel: { in: ['WEB', 'SOCIAL'] }, status: status === 'IN_TRANSIT' ? 'PAID' : 'IN_TRANSIT' }, data: { status } });
@@ -136,6 +150,7 @@ export class SalesService {
     });
   }
   // CANCELACIÓN: solo pendientes sin pago; repetirla nunca repone stock dos veces.
+  // BLOQUE cancel: Solo cancela pedidos pendientes sin pago ni intento activo; devuelve el stock una vez y registra movimientos de cancelación.
   async cancel(id: number, actor: Actor) {
     await this.get(id, actor);
     return this.prisma.$transaction(async tx => {

@@ -70,50 +70,85 @@ enum MovementType {
 
 // USERS: cuentas y roles; no exponer passwordHash.
 model User {
+  // CAMPO id: Identificador primario del registro.
   id Int @id @default(autoincrement())
+  // CAMPO name: Nombre legible.
   name String @db.VarChar(150)
+  // CAMPO email: Correo único usado para iniciar sesión. No puede repetirse.
   email String @unique @db.VarChar(254)
+  // CAMPO phone: Teléfono de contacto. Puede estar ausente (null).
   phone String? @db.VarChar(30)
+  // CAMPO passwordHash: Hash bcrypt; nunca contraseña en texto plano.
   passwordHash String @db.VarChar(255) @map("password_hash")
+  // CAMPO role: Rol de permisos: ADMIN, CASHIER o CUSTOMER.
   role UserRole @default(CUSTOMER)
+  // CAMPO active: Permite desactivar sin borrar historial.
   active Boolean @default(true)
+  // CAMPO createdAt: Momento de creación.
   createdAt DateTime @default(now()) @db.Timestamptz(3) @map("created_at")
+  // CAMPO addressesByUser: Colección de registros relacionados; no es una columna que guarde toda la lista.
   addressesByUser Address[] @relation("Address_user")
+  // CAMPO cartsByCreatedBy: Colección de registros relacionados; no es una columna que guarde toda la lista.
   cartsByCreatedBy Cart[] @relation("Cart_createdBy")
+  // CAMPO cartsByCustomer: Colección de registros relacionados; no es una columna que guarde toda la lista.
   cartsByCustomer Cart[] @relation("Cart_customer")
+  // CAMPO cashSessionsByOpenedBy: Colección de registros relacionados; no es una columna que guarde toda la lista.
   cashSessionsByOpenedBy CashSession[] @relation("CashSession_openedBy")
+  // CAMPO cashSessionsByClosedBy: Colección de registros relacionados; no es una columna que guarde toda la lista.
   cashSessionsByClosedBy CashSession[] @relation("CashSession_closedBy")
+  // CAMPO ordersByCustomer: Colección de registros relacionados; no es una columna que guarde toda la lista.
   ordersByCustomer Order[] @relation("Order_customer")
+  // CAMPO ordersByCreatedBy: Colección de registros relacionados; no es una columna que guarde toda la lista.
   ordersByCreatedBy Order[] @relation("Order_createdBy")
+  // CAMPO paymentsByRecordedBy: Colección de registros relacionados; no es una columna que guarde toda la lista.
   paymentsByRecordedBy Payment[] @relation("Payment_recordedBy")
+  // CAMPO inventoryMovementsByActor: Colección de registros relacionados; no es una columna que guarde toda la lista.
   inventoryMovementsByActor InventoryMovement[] @relation("InventoryMovement_actor")
   @@map("users")
 }
 
 // CATEGORIES: relaciones y datos del negocio.
 model Category {
+  // CAMPO id: Identificador primario del registro.
   id Int @id @default(autoincrement())
+  // CAMPO name: Nombre legible. No puede repetirse.
   name String @unique @db.VarChar(100)
+  // CAMPO active: Permite desactivar sin borrar historial.
   active Boolean @default(true)
+  // CAMPO productsByCategory: Colección de registros relacionados; no es una columna que guarde toda la lista.
   productsByCategory Product[] @relation("Product_category")
   @@map("categories")
 }
 
 // PRODUCTS: inventario único y precios decimales.
 model Product {
+  // CAMPO id: Identificador primario del registro.
   id Int @id @default(autoincrement())
+  // CAMPO categoryId: Clave que vincula este registro con category.
   categoryId Int @map("category_id")
+  // CAMPO category: Relación que Prisma permite consultar mediante include/select.
   category Category @relation("Product_category", fields: [categoryId], references: [id], onDelete: Restrict)
+  // CAMPO sku: Código único del repuesto. No puede repetirse.
   sku String @unique @db.VarChar(60)
+  // CAMPO name: Nombre legible.
   name String @db.VarChar(150)
+  // CAMPO description: Descripción opcional. Puede estar ausente (null).
   description String? 
+  // CAMPO acquisitionCost: Costo interno de compra; se oculta al público.
   acquisitionCost Decimal @db.Decimal(12,2) @map("acquisition_cost")
+  // CAMPO salePrice: Precio usado por el servidor al calcular ventas.
   salePrice Decimal @db.Decimal(12,2) @map("sale_price")
+  // CAMPO stock: Unidades disponibles en el inventario compartido.
   stock Int @default(0)
+  // CAMPO active: Permite desactivar sin borrar historial.
   active Boolean @default(true)
+  // CAMPO createdAt: Momento de creación.
   createdAt DateTime @default(now()) @db.Timestamptz(3) @map("created_at")
+  // CAMPO cartItemsByProduct: Colección de registros relacionados; no es una columna que guarde toda la lista.
   cartItemsByProduct CartItem[] @relation("CartItem_product")
+  // CAMPO orderItemsByProduct: Colección de registros relacionados; no es una columna que guarde toda la lista.
   orderItemsByProduct OrderItem[] @relation("OrderItem_product")
+  // CAMPO inventoryMovementsByProduct: Colección de registros relacionados; no es una columna que guarde toda la lista.
   inventoryMovementsByProduct InventoryMovement[] @relation("InventoryMovement_product")
   @@index([categoryId])
   @@map("products")
@@ -121,12 +156,19 @@ model Product {
 
 // ADDRESSES: relaciones y datos del negocio.
 model Address {
+  // CAMPO id: Identificador primario del registro.
   id Int @id @default(autoincrement())
+  // CAMPO userId: Clave que vincula este registro con user.
   userId Int @map("user_id")
+  // CAMPO user: Relación que Prisma permite consultar mediante include/select.
   user User @relation("Address_user", fields: [userId], references: [id], onDelete: Restrict)
+  // CAMPO recipientName: Nombre de quien recibe la entrega.
   recipientName String @db.VarChar(150) @map("recipient_name")
+  // CAMPO phone: Teléfono de contacto.
   phone String @db.VarChar(30)
+  // CAMPO addressLine: Dirección personal guardada.
   addressLine String @map("address_line")
+  // CAMPO reference: Referencia opcional de dirección o pago, según el modelo. Puede estar ausente (null).
   reference String? 
   @@index([userId])
   @@map("addresses")
@@ -134,26 +176,42 @@ model Address {
 
 // CARTS: relaciones y datos del negocio.
 model Cart {
+  // CAMPO id: Identificador primario del registro.
   id Int @id @default(autoincrement())
+  // CAMPO createdById: Clave que vincula este registro con createdBy.
   createdById Int @map("created_by_id")
+  // CAMPO createdBy: Relación que Prisma permite consultar mediante include/select.
   createdBy User @relation("Cart_createdBy", fields: [createdById], references: [id], onDelete: Restrict)
+  // CAMPO customerId: Clave que vincula este registro con customer. Puede estar ausente (null).
   customerId Int? @map("customer_id")
+  // CAMPO customer: Relación que Prisma permite consultar mediante include/select. Puede estar ausente (null).
   customer User? @relation("Cart_customer", fields: [customerId], references: [id], onDelete: Restrict)
+  // CAMPO channel: Canal POS, WEB o SOCIAL.
   channel SalesChannel 
+  // CAMPO status: Estado permitido del registro; las reglas de transición están en el servicio.
   status CartStatus @default(OPEN)
+  // CAMPO createdAt: Momento de creación.
   createdAt DateTime @default(now()) @db.Timestamptz(3) @map("created_at")
+  // CAMPO items: Colección de registros relacionados; no es una columna que guarde toda la lista.
   items CartItem[] @relation("CartItem_cart")
+  // CAMPO order: Relación que Prisma permite consultar mediante include/select. Puede estar ausente (null).
   order Order? @relation("Order_cart")
   @@map("carts")
 }
 
 // CART_ITEMS: relaciones y datos del negocio.
 model CartItem {
+  // CAMPO id: Identificador primario del registro.
   id Int @id @default(autoincrement())
+  // CAMPO cartId: Clave que vincula este registro con cart.
   cartId Int @map("cart_id")
+  // CAMPO cart: Relación que Prisma permite consultar mediante include/select.
   cart Cart @relation("CartItem_cart", fields: [cartId], references: [id], onDelete: Restrict)
+  // CAMPO productId: Clave que vincula este registro con product.
   productId Int @map("product_id")
+  // CAMPO product: Relación que Prisma permite consultar mediante include/select.
   product Product @relation("CartItem_product", fields: [productId], references: [id], onDelete: Restrict)
+  // CAMPO quantity: Cantidad de unidades de una línea.
   quantity Int 
   @@unique([cartId, productId])
   @@map("cart_items")
@@ -161,45 +219,80 @@ model CartItem {
 
 // CASH_SESSIONS: relaciones y datos del negocio.
 model CashSession {
+  // CAMPO id: Identificador primario del registro.
   id Int @id @default(autoincrement())
+  // CAMPO openedById: Clave que vincula este registro con openedBy.
   openedById Int @map("opened_by_id")
+  // CAMPO openedBy: Relación que Prisma permite consultar mediante include/select.
   openedBy User @relation("CashSession_openedBy", fields: [openedById], references: [id], onDelete: Restrict)
+  // CAMPO closedById: Clave que vincula este registro con closedBy. Puede estar ausente (null).
   closedById Int? @map("closed_by_id")
+  // CAMPO closedBy: Relación que Prisma permite consultar mediante include/select. Puede estar ausente (null).
   closedBy User? @relation("CashSession_closedBy", fields: [closedById], references: [id], onDelete: Restrict)
+  // CAMPO openingAmount: Fondo inicial de efectivo.
   openingAmount Decimal @db.Decimal(12,2) @map("opening_amount")
+  // CAMPO countedAmount: Efectivo contado al cierre. Puede estar ausente (null).
   countedAmount Decimal? @db.Decimal(12,2) @map("counted_amount")
+  // CAMPO expectedAmount: Efectivo esperado fijado al cierre. Puede estar ausente (null).
   expectedAmount Decimal? @db.Decimal(12,2) @map("expected_amount")
+  // CAMPO openedAt: Momento de apertura.
   openedAt DateTime @default(now()) @db.Timestamptz(3) @map("opened_at")
+  // CAMPO closedAt: Momento de cierre; null indica caja abierta. Puede estar ausente (null).
   closedAt DateTime? @db.Timestamptz(3) @map("closed_at")
+  // CAMPO orders: Colección de registros relacionados; no es una columna que guarde toda la lista.
   orders Order[] @relation("Order_cashSession")
   @@map("cash_sessions")
 }
 
 // ORDERS: venta confirmada con datos históricos de entrega.
 model Order {
+  // CAMPO id: Identificador primario del registro.
   id Int @id @default(autoincrement())
+  // CAMPO receiptNumber: Número único del comprobante. No puede repetirse.
   receiptNumber String @unique @db.VarChar(60) @map("receipt_number")
+  // CAMPO idempotencyKey: Clave única que identifica un checkout y permite reintentos sin duplicarlo. No puede repetirse.
   idempotencyKey String @unique @db.VarChar(100) @map("idempotency_key")
+  // CAMPO cartId: Clave que vincula este registro con cart. Puede estar ausente (null). No puede repetirse.
   cartId Int? @unique @map("cart_id")
+  // CAMPO cart: Relación que Prisma permite consultar mediante include/select. Puede estar ausente (null).
   cart Cart? @relation("Order_cart", fields: [cartId], references: [id], onDelete: Restrict)
+  // CAMPO customerId: Clave que vincula este registro con customer. Puede estar ausente (null).
   customerId Int? @map("customer_id")
+  // CAMPO customer: Relación que Prisma permite consultar mediante include/select. Puede estar ausente (null).
   customer User? @relation("Order_customer", fields: [customerId], references: [id], onDelete: Restrict)
+  // CAMPO createdById: Clave que vincula este registro con createdBy.
   createdById Int @map("created_by_id")
+  // CAMPO createdBy: Relación que Prisma permite consultar mediante include/select.
   createdBy User @relation("Order_createdBy", fields: [createdById], references: [id], onDelete: Restrict)
+  // CAMPO cashSessionId: Clave que vincula este registro con cashSession. Puede estar ausente (null).
   cashSessionId Int? @map("cash_session_id")
+  // CAMPO cashSession: Relación que Prisma permite consultar mediante include/select. Puede estar ausente (null).
   cashSession CashSession? @relation("Order_cashSession", fields: [cashSessionId], references: [id], onDelete: Restrict)
+  // CAMPO channel: Canal POS, WEB o SOCIAL.
   channel SalesChannel 
+  // CAMPO status: Estado permitido del registro; las reglas de transición están en el servicio.
   status OrderStatus 
+  // CAMPO total: Total calculado por el servidor con Decimal.
   total Decimal @db.Decimal(12,2)
+  // CAMPO recipientName: Nombre de quien recibe la entrega. Puede estar ausente (null).
   recipientName String? @db.VarChar(150) @map("recipient_name")
+  // CAMPO recipientPhone: Teléfono histórico del destinatario. Puede estar ausente (null).
   recipientPhone String? @db.VarChar(30) @map("recipient_phone")
+  // CAMPO deliveryAddress: Copia histórica de la dirección del pedido. Puede estar ausente (null).
   deliveryAddress String? @map("delivery_address")
+  // CAMPO deliveryReference: Referencia histórica para entrega. Puede estar ausente (null).
   deliveryReference String? @map("delivery_reference")
+  // CAMPO createdAt: Momento de creación.
   createdAt DateTime @default(now()) @db.Timestamptz(3) @map("created_at")
+  // CAMPO updatedAt: Momento de última actualización.
   updatedAt DateTime @default(now()) @db.Timestamptz(3) @updatedAt @map("updated_at")
+  // CAMPO items: Colección de registros relacionados; no es una columna que guarde toda la lista.
   items OrderItem[] @relation("OrderItem_order")
+  // CAMPO payment: Relación que Prisma permite consultar mediante include/select. Puede estar ausente (null).
   payment Payment? @relation("Payment_order")
+  // CAMPO movements: Colección de registros relacionados; no es una columna que guarde toda la lista.
   movements InventoryMovement[] @relation("InventoryMovement_order")
+  // CAMPO gatewayAttempts: Colección de registros relacionados; no es una columna que guarde toda la lista.
   gatewayAttempts GatewayAttempt[]
   @@index([customerId, createdAt])
   @@index([channel, status, createdAt])
@@ -209,14 +302,23 @@ model Order {
 
 // ORDER_ITEMS: cantidades, precios y costos históricos.
 model OrderItem {
+  // CAMPO id: Identificador primario del registro.
   id Int @id @default(autoincrement())
+  // CAMPO orderId: Clave que vincula este registro con order.
   orderId Int @map("order_id")
+  // CAMPO order: Relación que Prisma permite consultar mediante include/select.
   order Order @relation("OrderItem_order", fields: [orderId], references: [id], onDelete: Restrict)
+  // CAMPO productId: Clave que vincula este registro con product.
   productId Int @map("product_id")
+  // CAMPO product: Relación que Prisma permite consultar mediante include/select.
   product Product @relation("OrderItem_product", fields: [productId], references: [id], onDelete: Restrict)
+  // CAMPO productName: Nombre histórico del repuesto vendido.
   productName String @db.VarChar(150) @map("product_name")
+  // CAMPO quantity: Cantidad de unidades de una línea.
   quantity Int 
+  // CAMPO unitPrice: Precio histórico por unidad.
   unitPrice Decimal @db.Decimal(12,2) @map("unit_price")
+  // CAMPO unitCost: Costo histórico por unidad; permanece interno.
   unitCost Decimal @db.Decimal(12,2) @map("unit_cost")
   @@unique([orderId, productId])
   @@map("order_items")
@@ -224,30 +326,50 @@ model OrderItem {
 
 // PAYMENTS: relaciones y datos del negocio.
 model Payment {
+  // CAMPO id: Identificador primario del registro.
   id Int @id @default(autoincrement())
+  // CAMPO orderId: Clave que vincula este registro con order. No puede repetirse.
   orderId Int @unique @map("order_id")
+  // CAMPO order: Relación que Prisma permite consultar mediante include/select.
   order Order @relation("Payment_order", fields: [orderId], references: [id], onDelete: Restrict)
+  // CAMPO recordedById: Clave que vincula este registro con recordedBy.
   recordedById Int @map("recorded_by_id")
+  // CAMPO recordedBy: Relación que Prisma permite consultar mediante include/select.
   recordedBy User @relation("Payment_recordedBy", fields: [recordedById], references: [id], onDelete: Restrict)
+  // CAMPO method: Método CASH, CARD o TRANSFER.
   method PaymentMethod 
+  // CAMPO amount: Importe completo registrado en el pago.
   amount Decimal @db.Decimal(12,2)
+  // CAMPO reference: Referencia opcional de dirección o pago, según el modelo. Puede estar ausente (null).
   reference String? @db.VarChar(150)
+  // CAMPO paidAt: Momento de registro del pago.
   paidAt DateTime @default(now()) @db.Timestamptz(3) @map("paid_at")
   @@map("payments")
 }
 
 // INVENTORY_MOVEMENTS: trazabilidad de cambios en stock.
 model InventoryMovement {
+  // CAMPO id: Identificador primario del registro.
   id Int @id @default(autoincrement())
+  // CAMPO productId: Clave que vincula este registro con product.
   productId Int @map("product_id")
+  // CAMPO product: Relación que Prisma permite consultar mediante include/select.
   product Product @relation("InventoryMovement_product", fields: [productId], references: [id], onDelete: Restrict)
+  // CAMPO orderId: Clave que vincula este registro con order. Puede estar ausente (null).
   orderId Int? @map("order_id")
+  // CAMPO order: Relación que Prisma permite consultar mediante include/select. Puede estar ausente (null).
   order Order? @relation("InventoryMovement_order", fields: [orderId], references: [id], onDelete: Restrict)
+  // CAMPO actorId: Clave que vincula este registro con actor.
   actorId Int @map("actor_id")
+  // CAMPO actor: Relación que Prisma permite consultar mediante include/select.
   actor User @relation("InventoryMovement_actor", fields: [actorId], references: [id], onDelete: Restrict)
+  // CAMPO type: Tipo de movimiento de inventario.
   type MovementType 
+  // CAMPO quantityDelta: Unidades agregadas si positivo o retiradas si negativo.
   quantityDelta Int @map("quantity_delta")
+  // CAMPO reason: Motivo del movimiento. Puede estar ausente (null).
   reason String? 
+  // CAMPO createdAt: Momento de creación.
   createdAt DateTime @default(now()) @db.Timestamptz(3) @map("created_at")
   @@index([productId, createdAt])
   @@map("inventory_movements")
@@ -255,15 +377,24 @@ model InventoryMovement {
 
 // PASARELA: guarda intentos y su correlación; nunca números de tarjeta ni la llave secreta.
 model GatewayAttempt {
+  // CAMPO id: Identificador primario del registro.
   id String @id @default(uuid()) @db.Uuid
+  // CAMPO orderId: Clave que vincula este registro con order.
   orderId Int @map("order_id")
+  // CAMPO order: Relación que Prisma permite consultar mediante include/select.
   order Order @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  // CAMPO gatewayId: Identificador remoto de MockPay; único cuando existe. Puede estar ausente (null). No puede repetirse.
   gatewayId String? @unique @map("gateway_id")
+  // CAMPO checkoutUrl: Dirección normalizada del formulario externo. Puede estar ausente (null).
   checkoutUrl String? @map("checkout_url")
+  // CAMPO status: Estado permitido del registro; las reglas de transición están en el servicio.
   status String @default("CREATING") @db.VarChar(20)
+  // CAMPO createdAt: Momento de creación.
   createdAt DateTime @default(now()) @db.Timestamptz(3) @map("created_at")
+  // CAMPO updatedAt: Momento de última actualización.
   updatedAt DateTime @updatedAt @db.Timestamptz(3) @map("updated_at")
   @@index([orderId])
   @@map("gateway_attempts")
 }
+
 

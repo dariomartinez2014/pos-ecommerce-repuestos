@@ -1,3 +1,5 @@
+// ARCHIVO: Correlaciona intentos y pedidos, confirma importe/moneda/metadata y registra un pago verificado una sola vez.
+// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
 import { BadGatewayException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'node:crypto';
@@ -8,9 +10,12 @@ import { Prisma } from '../generated/prisma/client';
 import { MockPayClient, singleSlash } from './mockpay.client';
 
 const active = ['CREATING', 'PENDING', 'UNKNOWN'];
+// CLASE MockPayService: Correlaciona intentos y pedidos, confirma importe/moneda/metadata y registra un pago verificado una sola vez.
 @Injectable()
 export class MockPayService {
+  // BLOQUE constructor: Inyecta las dependencias necesarias; NestJS proporciona estas instancias al construir la clase.
   constructor(private readonly db: PrismaService, private readonly sales: SalesService, private readonly client: MockPayClient, private readonly config: ConfigService) {}
+  // BLOQUE create: Crea o recupera un intento sin duplicarlo; llama MockPay fuera de la transacción y guarda su URL normalizada.
   async create(orderId: number, actor: Actor) {
     await this.sales.get(orderId, actor);
     const attempt = await this.db.$transaction(async tx => {
@@ -40,17 +45,20 @@ export class MockPayService {
       throw error;
     }
   }
+  // BLOQUE latest: Comprueba propiedad del pedido y devuelve el intento de pago más reciente.
   async latest(orderId: number, actor: Actor) {
     await this.sales.get(orderId, actor);
     const attempt = await this.db.gatewayAttempt.findFirst({ where: { orderId }, orderBy: { createdAt: 'desc' } });
     if (!attempt) throw new NotFoundException('Este pedido aún no tiene intento MockPay');
     return attempt;
   }
+  // BLOQUE sync: Consulta al proveedor usando el identificador guardado; no acepta el estado enviado por el cliente.
   async sync(orderId: number, actor: Actor) {
     const attempt = await this.latest(orderId, actor);
     if (!attempt.gatewayId) throw new ConflictException('No hay identificador remoto confirmado; requiere revisión');
     return this.verify(attempt.gatewayId);
   }
+  // BLOQUE demo: Permite tarjetas ficticias solo en development/test; en production devuelve 403.
   async demo(orderId: number, scenario: 'SUCCESS' | 'INSUFFICIENT_FUNDS' | 'DECLINED', actor: Actor) {
     if (!['development', 'test'].includes(this.config.get<string>('NODE_ENV', 'production'))) throw new ForbiddenException('La simulación desde Swagger está habilitada únicamente en desarrollo y pruebas');
     const attempt = await this.latest(orderId, actor);
@@ -60,6 +68,7 @@ export class MockPayService {
     if (remote.status === 'PENDING') await this.client.processDemo(attempt.gatewayId, scenario);
     return this.verify(attempt.gatewayId);
   }
+  // BLOQUE verify: Contrasta id, GTQ, importe y metadata con el pedido; registra pago CARD/PAID de forma idempotente.
   async verify(gatewayId: string) {
     const attempt = await this.db.gatewayAttempt.findUnique({ where: { gatewayId } });
     if (!attempt) throw new NotFoundException('Transacción no vinculada a esta tienda');

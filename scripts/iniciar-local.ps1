@@ -1,4 +1,6 @@
-﻿# INICIO: configura secretos, enciende PostgreSQL y ejecuta la API en esta consola.
+﻿# ARCHIVO: Coordina configuración, PostgreSQL, instalación, Prisma, migraciones, build, seed y arranque.
+# ESTUDIO: pasos y bloques explicados en docs/GUIA-CODIGO-COMPLETA.md.
+# INICIO: configura secretos, enciende PostgreSQL y ejecuta la API en esta consola.
 param([switch]$Preparar, [switch]$EngineFallback)
 $ErrorActionPreference = 'Stop'
 $projectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))

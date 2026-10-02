@@ -1,3 +1,5 @@
+// ARCHIVO: Prepara configuración privada local y credenciales aleatorias sin imprimir secretos.
+// ESTUDIO: pasos y bloques explicados en docs/GUIA-CODIGO-COMPLETA.md.
 // CONFIGURACIÓN LOCAL: genera secretos privados y preserva las contraseñas del seed existente.
 const fs = require('node:fs');
 const path = require('node:path');

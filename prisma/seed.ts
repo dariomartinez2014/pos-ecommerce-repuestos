@@ -1,3 +1,5 @@
+// ARCHIVO: Carga usuarios y repuestos ficticios; recorre los servicios reales para generar pedidos y caja de demostración.
+// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
 import 'reflect-metadata';
 import 'dotenv/config';
 import { NestFactory } from '@nestjs/core';
@@ -9,6 +11,7 @@ import { CashService } from '../src/cash/cash.module';
 import { Actor } from '../src/common/security';
 
 // SEMILLA REUTILIZABLE: agrega demostraciones sin borrar ventas o modificar claves existentes.
+// BLOQUE seed: Crea ejemplos faltantes con contraseña de entorno y reutiliza servicios para respetar reglas reales.
 async function seed() {
   const password = process.env.SEED_PASSWORD;
   if (!password || password.length < 12 || Buffer.byteLength(password) > 72) throw new Error('Define SEED_PASSWORD con 12 caracteres como mínimo y máximo 72 bytes');

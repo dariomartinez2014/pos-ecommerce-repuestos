@@ -1,4 +1,6 @@
-﻿# ADAPTADOR LOCAL: usa el mismo motor Prisma cuando el entorno restringe spawn de Node.
+﻿# ARCHIVO: Aplica las migraciones usando el motor oficial Prisma cuando un entorno restringido no permite lanzarlo desde Node.
+# ESTUDIO: pasos y bloques explicados en docs/GUIA-CODIGO-COMPLETA.md.
+# ADAPTADOR LOCAL: usa el mismo motor Prisma cuando el entorno restringe spawn de Node.
 # El flujo habitual sigue siendo npm run db:deploy; este adaptador usa la versión del lockfile.
 param([string]$DatabaseUrl = '')
 $ErrorActionPreference = 'Stop'

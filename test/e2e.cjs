@@ -1,3 +1,5 @@
+// ARCHIVO: Pruebas integradas con NestJS, HTTP y PostgreSQL real en una base separada terminada en _test.
+// ESTUDIO: pasos y bloques explicados en docs/GUIA-CODIGO-COMPLETA.md.
 // PRUEBAS REALES: ejecutan HTTP, Guards, DTOs, Prisma y PostgreSQL juntos.
 // Solo permiten una base cuyo nombre termine en _test; nunca usan datos de producción.
 require('reflect-metadata');

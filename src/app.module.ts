@@ -1,3 +1,5 @@
+// ARCHIVO: Reúne los módulos, valida variables con Joi y registra Guards globales. Incluye la ruta de salud que consulta PostgreSQL.
+// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
 import { Controller, Get, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
@@ -13,14 +15,18 @@ import { SalesModule } from './sales/sales.module';
 import { CashModule } from './cash/cash.module';
 import { MockPayModule } from './mockpay/mockpay.module';
 
+// CLASE HealthController: agrupa y registra dependencias en NestJS.
 @ApiTags('Estado') @Controller('health')
 class HealthController {
+  // BLOQUE constructor: Inyecta las dependencias necesarias; NestJS proporciona estas instancias al construir la clase.
   constructor(private readonly prisma: PrismaService, private readonly config: ConfigService) {}
+  // BLOQUE health: Ejecuta SELECT 1 para comprobar la conexión y devuelve estado, tienda y moneda.
   @Public() @Get() @ApiOperation({ summary: 'Comprobar disponibilidad del backend y PostgreSQL' })
   async health() { await this.prisma.$queryRaw`SELECT 1`; return { status: 'ok', store: 'Repuestos', currency: this.config.get('STORE_CURRENCY') }; }
 }
 
 // RAÍZ: valida configuración al iniciar; protege todas las rutas por defecto.
+// CLASE AppModule: agrupa y registra dependencias en NestJS.
 @Module({
   imports: [ConfigModule.forRoot({ isGlobal: true, validationSchema: Joi.object({
     DATABASE_URL: Joi.string().required(), JWT_SECRET: Joi.string().min(32).required(),

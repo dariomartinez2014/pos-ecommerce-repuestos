@@ -1,4 +1,6 @@
-﻿# SINCRONIZACIÓN: ejecuta este archivo en tu propia consola para conectar el historial local.
+﻿# ARCHIVO: Vincula el historial local al remoto desde la consola del usuario, conservando los archivos de trabajo.
+# ESTUDIO: pasos y bloques explicados en docs/GUIA-CODIGO-COMPLETA.md.
+# SINCRONIZACIÓN: ejecuta este archivo en tu propia consola para conectar el historial local.
 # La subida inicial se realizó por la API de GitHub; este entorno protege la carpeta .git.
 $ErrorActionPreference = 'Stop'
 $projectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))

@@ -1,3 +1,5 @@
+// ARCHIVO: Describe respuestas OpenAPI: tipos, listas, importes y errores. Documentar una respuesta no ejecuta la operación.
+// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
 import { OpenAPIObject } from '@nestjs/swagger';
 import { SchemaObject, ReferenceObject } from '@nestjs/swagger/dist/interfaces/open-api-spec.interface';
 // CONTRATOS: los Decimal se serializan como cadenas; todos los importes están en GTQ.
@@ -14,6 +16,7 @@ const page = (name: string): SchemaObject => object({ data: array(name), total: 
 const cashProperties = { id: integer, openedById: integer, closedById: { ...integer, nullable: true }, openingAmount: money, countedAmount: { ...money, nullable: true }, expectedAmount: { ...money, nullable: true }, openedAt: date, closedAt: { ...date, nullable: true } };
 const productProperties = { id: integer, sku: { ...text, example: 'FRE-001' }, name: { ...text, example: 'Pastillas de freno delanteras' }, description: nullableText, salePrice: money, stock: integer, active: { type: 'boolean' } as SchemaObject, category: object({ id: integer, name: text }) };
 // DOCUMENTACIÓN: cada ruta declara su respuesta real, no altera el comportamiento de la API.
+// BLOQUE documentResponses: Agrega schemas, respuestas y errores a las operaciones Swagger; no modifica el comportamiento del servidor.
 export function documentResponses(doc: OpenAPIObject) {
   const schemas: Record<string, SchemaObject> = {
     ApiError: object({ statusCode: integer, message: { oneOf: [text, { type: 'array', items: text }] }, path: text, timestamp: date }),
