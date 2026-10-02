@@ -12,7 +12,7 @@ Implementado con NestJS, TypeScript, PostgreSQL, Prisma, Passport/JWT y Swagger.
 - [Estado del servidor y PostgreSQL](https://pos-ecommerce-repuestos.onrender.com/api/health)
 - [Catálogo de repuestos](https://pos-ecommerce-repuestos.onrender.com/api/products)
 
-Validación: 15 comprobaciones de integración locales y 17 comprobaciones públicas de catálogo, identidad, compra WEB, pagos ficticios y cancelación. Las pruebas públicas de administración, logística y caja todavía requieren los accesos del entorno publicado. Consulta docs/ENTREGA-PUBLICA.md.
+Validación: 15 comprobaciones de integración locales y 31 comprobaciones públicas de catálogo, identidad, compra WEB, pagos ficticios, cancelación, administración, ventas POS, caja y logística. Consulta docs/ENTREGA-PUBLICA.md.
 
 ## Inicio local en Windows
 

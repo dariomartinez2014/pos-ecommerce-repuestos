@@ -44,4 +44,4 @@ Prueba externa del sandbox: un pedido de demostración en GTQ fue aprobado por M
 
 ## Verificación del entorno publicado
 
-La API en Render y PostgreSQL en Supabase aprobaron 17 comprobaciones públicas: catálogo, identidad, permisos de cliente, checkout idempotente, inventario, MockPay aprobado/rechazado, sincronización repetida y cancelación. El informe no incluye contraseñas ni tarjetas. Consulta ENTREGA-PUBLICA.md para el alcance y los pendientes de roles ADMIN/CASHIER.
+La API en Render y PostgreSQL en Supabase aprobaron 31 comprobaciones públicas: 17 de catálogo, identidad, permisos de cliente, checkout idempotente, inventario, MockPay aprobado/rechazado, sincronización repetida y cancelación; más 14 de accesos ADMIN/CASHIER/CUSTOMER, ajustes, POS, conciliación/cierre de caja, logística y SOCIAL. El informe no incluye contraseñas ni tarjetas. Consulta ENTREGA-PUBLICA.md para el alcance y ejemplos conservados.

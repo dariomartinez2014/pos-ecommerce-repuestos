@@ -1,6 +1,6 @@
 # Publicación pendiente
 
-La publicación requerida ya está realizada: API en Render, PostgreSQL en Supabase, datos de demostración y comercio MockPay con URLs públicas. Consulta ENTREGA-PUBLICA.md para el estado verificado y las pruebas pendientes de administración/caja.
+La publicación requerida ya está realizada: API en Render, PostgreSQL en Supabase, datos de demostración y comercio MockPay con URLs públicas. También se completaron las pruebas públicas de administración/caja. Consulta ENTREGA-PUBLICA.md para el estado verificado.
 
 1. Crear la cuenta y el proyecto Supabase y guardar su conexión privada.
 2. Subir el código al repositorio GitHub.
