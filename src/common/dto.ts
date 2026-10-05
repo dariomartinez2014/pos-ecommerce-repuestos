@@ -6,8 +6,9 @@ import { IsInt, IsOptional, Max, Min } from 'class-validator';
 // limita lecturas para evitar descargar todo el catálogo por accidente.
 
 export class PageDto {
-  @ApiPropertyOptional({ default: 1, minimum: 1 }) @Type(() => Number) @IsInt() @Min(1)
+  // Swagger necesita el tipo explícito porque este campo tiene un valor inicial.
+  @ApiPropertyOptional({ type: Number, default: 1, minimum: 1 }) @Type(() => Number) @IsInt() @Min(1)
   page = 1;
-  @ApiPropertyOptional({ default: 20, maximum: 100 }) @Type(() => Number) @IsInt() @Min(1) @Max(100)
+  @ApiPropertyOptional({ type: Number, default: 20, maximum: 100 }) @Type(() => Number) @IsInt() @Min(1) @Max(100)
   limit = 20;
 }
