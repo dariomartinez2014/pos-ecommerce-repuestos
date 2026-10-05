@@ -37,7 +37,8 @@ export class MockPayService {
       if (typeof remote.id_transaccion !== 'string' || typeof remote.checkout_url !== 'string') throw new BadGatewayException('Contrato de MockPay inválido');
       const checkoutUrl = singleSlash(remote.checkout_url);
       const url = new URL(checkoutUrl);
-      if (url.origin !== 'https://mockpay-frontend.vercel.app' || url.pathname !== '/checkout/' + remote.id_transaccion) throw new BadGatewayException('URL de checkout inesperada');
+      const checkoutOrigin = this.config.get<string>('MOCKPAY_NEW_SECRET_KEY') ? 'https://site-mock-payment.funvaltech.cloud' : 'https://mockpay-frontend.vercel.app';
+      if (url.origin !== checkoutOrigin || url.pathname !== '/checkout/' + remote.id_transaccion) throw new BadGatewayException('URL de checkout inesperada');
       return await this.db.gatewayAttempt.update({ where: { id: attempt.id }, data: { gatewayId: remote.id_transaccion, checkoutUrl, status: 'PENDING' } });
     } catch (error) {
       // INCERTIDUMBRE: un timeout no significa que la pasarela no creó la intención.
@@ -64,15 +65,16 @@ export class MockPayService {
     const attempt = await this.latest(orderId, actor);
     if (!attempt.gatewayId || attempt.status !== 'PENDING') throw new ConflictException('La simulación requiere un intento pendiente');
     // CONSULTA PREVIA: no procesar de nuevo si la pasarela ya terminó el cobro.
-    const remote = await this.client.get(attempt.gatewayId);
-    if (remote.status === 'PENDING') await this.client.processDemo(attempt.gatewayId, scenario);
+    const legacy = attempt.checkoutUrl?.startsWith('https://mockpay-frontend.vercel.app/') === true;
+    const remote = await this.client.get(attempt.gatewayId, legacy);
+    if (remote.status === 'PENDING') await this.client.processDemo(attempt.gatewayId, scenario, legacy);
     return this.verify(attempt.gatewayId);
   }
   // BLOQUE verify: Contrasta id, GTQ, importe y metadata con el pedido; registra pago CARD/PAID de forma idempotente.
   async verify(gatewayId: string) {
     const attempt = await this.db.gatewayAttempt.findUnique({ where: { gatewayId } });
     if (!attempt) throw new NotFoundException('Transacción no vinculada a esta tienda');
-    const remote = await this.client.get(gatewayId);
+    const remote = await this.client.get(gatewayId, attempt.checkoutUrl?.startsWith('https://mockpay-frontend.vercel.app/') === true);
     const order = await this.db.order.findUniqueOrThrow({ where: { id: attempt.orderId } });
     // VERIFICACIÓN: el webhook y la redirección nunca deciden importe, pedido ni estado.
     if (remote.id !== gatewayId || remote.currency !== 'GTQ' || remote.metadata?.order_id !== String(order.id) || remote.metadata?.attempt_id !== attempt.id ||

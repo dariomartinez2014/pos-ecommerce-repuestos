@@ -33,6 +33,7 @@ class HealthController {
     PORT: Joi.number().port().default(3000), NODE_ENV: Joi.string().valid('development', 'production', 'test').default('development'),
     CORS_ORIGINS: Joi.string().allow('').default(''), STORE_CURRENCY: Joi.string().valid('GTQ').default('GTQ'),
     MOCKPAY_API_URL: Joi.string().uri().default('https://mockpay-backend.onrender.com'), MOCKPAY_SECRET_KEY: Joi.string().allow('').optional(),
+    MOCKPAY_NEW_API_URL: Joi.string().uri().default('https://api-mock-payment.funvaltech.cloud'), MOCKPAY_NEW_SECRET_KEY: Joi.string().allow('').optional(),
   }) }), ThrottlerModule.forRoot([{ ttl: 60000, limit: 300 }]), PrismaModule, AuthModule, CatalogModule, AddressesModule, SalesModule, CashModule, MockPayModule],
   controllers: [HealthController],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }, { provide: APP_GUARD, useClass: JwtGuard }, { provide: APP_GUARD, useClass: RolesGuard }],

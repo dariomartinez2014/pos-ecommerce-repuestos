@@ -16,10 +16,12 @@ export class MockPayClient {
   
   constructor(private readonly config: ConfigService) {}
   // Construye la URL, agrega Bearer privado, llama fetch con timeout y convierte fallos externos a un error seguro.
-  async request(path: string, body?: unknown): Promise<any> {
-    const key = this.config.get<string>('MOCKPAY_SECRET_KEY');
+  async request(path: string, body?: unknown, legacy = false): Promise<any> {
+    // Los intentos anteriores siguen consultándose en su pasarela original.
+    const modern = !legacy && !!this.config.get<string>('MOCKPAY_NEW_SECRET_KEY');
+    const key = this.config.get<string>(modern ? 'MOCKPAY_NEW_SECRET_KEY' : 'MOCKPAY_SECRET_KEY');
     if (!key) throw new ServiceUnavailableException('Configura MOCKPAY_SECRET_KEY en el backend');
-    const base = this.config.get<string>('MOCKPAY_API_URL', 'https://mockpay-backend.onrender.com');
+    const base = modern ? this.config.get<string>('MOCKPAY_NEW_API_URL', 'https://api-mock-payment.funvaltech.cloud') : this.config.get<string>('MOCKPAY_API_URL', 'https://mockpay-backend.onrender.com');
     const url = singleSlash(base.replace(/\/+$/, '') + '/api/v1/' + path.replace(/^\/+/, ''));
     try {
       // el secreto no aparece en respuestas ni en logs.
@@ -31,11 +33,11 @@ export class MockPayClient {
   // Crea o recupera un intento sin duplicarlo; llama MockPay fuera de la transacción y guarda su URL normalizada.
   create(amount: number, metadata: Record<string, string>) { return this.request('payments', { amount, currency: 'GTQ', metadata }); }
   // Busca el registro solicitado y responde con los campos permitidos.
-  get(id: string) { return this.request('payments/' + encodeURIComponent(id)); }
+  get(id: string, legacy = false) { return this.request('payments/' + encodeURIComponent(id), undefined, legacy); }
   // solo tarjetas ficticias del curso, normalizadas sin espacios.
   // Envía una tarjeta fija de prueba según el escenario; sus números se envían sin espacios.
-  processDemo(id: string, scenario: 'SUCCESS' | 'INSUFFICIENT_FUNDS' | 'DECLINED') {
+  processDemo(id: string, scenario: 'SUCCESS' | 'INSUFFICIENT_FUNDS' | 'DECLINED', legacy = false) {
     const numbers = { SUCCESS: '4242424242424242', INSUFFICIENT_FUNDS: '4000000000000002', DECLINED: '5555555555554444' };
-    return this.request('payments/' + encodeURIComponent(id) + '/process', { cardNumber: numbers[scenario], expiry: '12/30', cvc: '123', cardholderName: 'Cliente Demo', phone: '5555-0101', address: 'Dirección ficticia de prueba', zip: '01001' });
+    return this.request('payments/' + encodeURIComponent(id) + '/process', { cardNumber: numbers[scenario], expiry: '12/30', cvc: '123', cardholderName: 'Cliente Demo', phone: '5555-0101', address: 'Dirección ficticia de prueba', zip: '01001' }, legacy);
   }
 }
