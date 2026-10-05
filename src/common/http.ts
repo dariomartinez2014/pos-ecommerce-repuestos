@@ -1,16 +1,16 @@
-// ARCHIVO: Convierte excepciones a respuestas JSON seguras y registra la duración de las solicitudes.
-// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
+// Convierte excepciones a respuestas JSON seguras y registra la duración de las solicitudes.
+
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, Injectable, Logger, NestInterceptor, ExecutionContext, CallHandler } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { finalize } from 'rxjs/operators';
 import { Prisma } from '../generated/prisma/client';
 
-// ERRORES: transforma conflictos conocidos y evita exponer SQL o secretos.
-// CLASE HttpErrorFilter: Convierte excepciones a respuestas JSON seguras y registra la duración de las solicitudes.
+// transforma conflictos conocidos y evita exponer SQL o secretos.
+
 @Catch()
 export class HttpErrorFilter implements ExceptionFilter {
   private readonly logger = new Logger('Errores');
-  // BLOQUE catch: Transforma errores de NestJS/Prisma a statusCode, message, path y timestamp; evita exponer detalles internos al cliente.
+  // Transforma errores de NestJS/Prisma a statusCode, message, path y timestamp; evita exponer detalles internos al cliente.
   catch(error: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const res = ctx.getResponse<Response>();
@@ -32,12 +32,12 @@ export class HttpErrorFilter implements ExceptionFilter {
   }
 }
 
-// LOGGING: registra también solicitudes fallidas, sin imprimir cuerpos ni tokens.
-// CLASE HttpLoggingInterceptor: Convierte excepciones a respuestas JSON seguras y registra la duración de las solicitudes.
+// registra también solicitudes fallidas, sin imprimir cuerpos ni tokens.
+
 @Injectable()
 export class HttpLoggingInterceptor implements NestInterceptor {
   private readonly logger = new Logger('HTTP');
-  // BLOQUE intercept: Mide el tiempo de la petición y registra método/ruta al finalizar, incluso cuando ocurre un error.
+  // Mide el tiempo de la petición y registra método/ruta al finalizar, incluso cuando ocurre un error.
   intercept(ctx: ExecutionContext, next: CallHandler) {
     const req = ctx.switchToHttp().getRequest<Request>();
     const start = Date.now();

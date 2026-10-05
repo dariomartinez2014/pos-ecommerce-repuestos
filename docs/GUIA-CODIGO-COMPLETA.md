@@ -11,7 +11,7 @@ Esta guía se construyó leyendo los archivos reales del proyecto. Cada sección
 5. Reproduce una petición en Swagger y localiza su controller, DTO, service y modelo.
 6. Lee pruebas y scripts al final.
 
-No necesitas memorizar cada línea: debes poder explicar entradas, decisión, efecto en base de datos y respuesta. Los comentarios ARCHIVO, CLASE, BLOQUE y CAMPO son etiquetas educativas; TypeScript las ignora. Los import, decorators y funciones sí forman parte del programa.
+No necesitas memorizar cada línea: debes poder explicar entradas, decisión, efecto en base de datos y respuesta. Los comentarios explican la intención del código con frases cortas en español; TypeScript los ignora. Los import, decorators y funciones sí forman parte del programa.
 
 ## Recorrido de una petición
 
@@ -432,10 +432,10 @@ Lanzador Windows que ejecuta el preparador PowerShell y mantiene visible la cons
 ### Código completo para leer junto a la explicación
 
 ```text
-REM ARCHIVO: Lanzador Windows que ejecuta el preparador PowerShell y mantiene visible la consola.
-REM ESTUDIO: pasos y bloques explicados en docs/GUIA-CODIGO-COMPLETA.md.
+REM Lanzador Windows que ejecuta el preparador PowerShell y mantiene visible la consola.
+
 @echo off
-REM INICIO WINDOWS: prepara el proyecto y mantiene visible la consola del servidor.
+REM prepara el proyecto y mantiene visible la consola del servidor.
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\iniciar-local.ps1" -Preparar
 pause
 ```
@@ -756,8 +756,8 @@ Fuente del modelo de datos: enums, doce modelos, relaciones, tipos decimales e �
 ### Código completo para leer junto a la explicación
 
 ```text
-// CLIENTE: Prisma 7 genera tipos y consultas a partir de este modelo.
-// CONEXIÓN: DATABASE_URL se configura en prisma.config.ts, nunca se escribe aquí.
+// Prisma 7 genera tipos y consultas a partir de este modelo.
+// DATABASE_URL se configura en prisma.config.ts, nunca se escribe aquí.
 generator client {
  provider = "prisma-client"
  output = "../src/generated/prisma"
@@ -767,7 +767,7 @@ datasource db {
  provider = "postgresql"
 }
 
-// VALORES PERMITIDOS: evita estados o roles escritos de forma inconsistente.
+// evita estados o roles escritos de forma inconsistente.
 enum UserRole {
   ADMIN
   CASHIER
@@ -776,7 +776,7 @@ enum UserRole {
  @@map("user_role")
 }
 
-// VALORES PERMITIDOS: evita estados o roles escritos de forma inconsistente.
+// evita estados o roles escritos de forma inconsistente.
 enum SalesChannel {
   POS
   WEB
@@ -785,7 +785,7 @@ enum SalesChannel {
  @@map("sales_channel")
 }
 
-// VALORES PERMITIDOS: evita estados o roles escritos de forma inconsistente.
+// evita estados o roles escritos de forma inconsistente.
 enum OrderStatus {
   PENDING
   PAID
@@ -797,7 +797,7 @@ enum OrderStatus {
  @@map("order_status")
 }
 
-// VALORES PERMITIDOS: evita estados o roles escritos de forma inconsistente.
+// evita estados o roles escritos de forma inconsistente.
 enum CartStatus {
   OPEN
   CONVERTED
@@ -806,7 +806,7 @@ enum CartStatus {
  @@map("cart_status")
 }
 
-// VALORES PERMITIDOS: evita estados o roles escritos de forma inconsistente.
+// evita estados o roles escritos de forma inconsistente.
 enum PaymentMethod {
   CASH
   CARD
@@ -815,7 +815,7 @@ enum PaymentMethod {
  @@map("payment_method")
 }
 
-// VALORES PERMITIDOS: evita estados o roles escritos de forma inconsistente.
+// evita estados o roles escritos de forma inconsistente.
 enum MovementType {
   INITIAL
   RESTOCK
@@ -826,231 +826,231 @@ enum MovementType {
  @@map("movement_type")
 }
 
-// USERS: cuentas y roles; no exponer passwordHash.
+// cuentas y roles; no exponer passwordHash.
 model User {
-  // CAMPO id: Identificador primario del registro.
+  // Identificador primario del registro.
   id Int @id @default(autoincrement())
-  // CAMPO name: Nombre legible.
+  // Nombre legible.
   name String @db.VarChar(150)
-  // CAMPO email: Correo único usado para iniciar sesión. No puede repetirse.
+  // Correo único usado para iniciar sesión. No puede repetirse.
   email String @unique @db.VarChar(254)
-  // CAMPO phone: Teléfono de contacto. Puede estar ausente (null).
+  // Teléfono de contacto. Puede estar ausente (null).
   phone String? @db.VarChar(30)
-  // CAMPO passwordHash: Hash bcrypt; nunca contraseña en texto plano.
+  // Hash bcrypt; nunca contraseña en texto plano.
   passwordHash String @db.VarChar(255) @map("password_hash")
-  // CAMPO role: Rol de permisos: ADMIN, CASHIER o CUSTOMER.
+  // Rol de permisos: ADMIN, CASHIER o CUSTOMER.
   role UserRole @default(CUSTOMER)
-  // CAMPO active: Permite desactivar sin borrar historial.
+  // Permite desactivar sin borrar historial.
   active Boolean @default(true)
-  // CAMPO createdAt: Momento de creación.
+  // Momento de creación.
   createdAt DateTime @default(now()) @db.Timestamptz(3) @map("created_at")
-  // CAMPO addressesByUser: Colección de registros relacionados; no es una columna que guarde toda la lista.
+  // Colección de registros relacionados; no es una columna que guarde toda la lista.
   addressesByUser Address[] @relation("Address_user")
-  // CAMPO cartsByCreatedBy: Colección de registros relacionados; no es una columna que guarde toda la lista.
+  // Colección de registros relacionados; no es una columna que guarde toda la lista.
   cartsByCreatedBy Cart[] @relation("Cart_createdBy")
-  // CAMPO cartsByCustomer: Colección de registros relacionados; no es una columna que guarde toda la lista.
+  // Colección de registros relacionados; no es una columna que guarde toda la lista.
   cartsByCustomer Cart[] @relation("Cart_customer")
-  // CAMPO cashSessionsByOpenedBy: Colección de registros relacionados; no es una columna que guarde toda la lista.
+  // Colección de registros relacionados; no es una columna que guarde toda la lista.
   cashSessionsByOpenedBy CashSession[] @relation("CashSession_openedBy")
-  // CAMPO cashSessionsByClosedBy: Colección de registros relacionados; no es una columna que guarde toda la lista.
+  // Colección de registros relacionados; no es una columna que guarde toda la lista.
   cashSessionsByClosedBy CashSession[] @relation("CashSession_closedBy")
-  // CAMPO ordersByCustomer: Colección de registros relacionados; no es una columna que guarde toda la lista.
+  // Colección de registros relacionados; no es una columna que guarde toda la lista.
   ordersByCustomer Order[] @relation("Order_customer")
-  // CAMPO ordersByCreatedBy: Colección de registros relacionados; no es una columna que guarde toda la lista.
+  // Colección de registros relacionados; no es una columna que guarde toda la lista.
   ordersByCreatedBy Order[] @relation("Order_createdBy")
-  // CAMPO paymentsByRecordedBy: Colección de registros relacionados; no es una columna que guarde toda la lista.
+  // Colección de registros relacionados; no es una columna que guarde toda la lista.
   paymentsByRecordedBy Payment[] @relation("Payment_recordedBy")
-  // CAMPO inventoryMovementsByActor: Colección de registros relacionados; no es una columna que guarde toda la lista.
+  // Colección de registros relacionados; no es una columna que guarde toda la lista.
   inventoryMovementsByActor InventoryMovement[] @relation("InventoryMovement_actor")
   @@map("users")
 }
 
-// CATEGORIES: relaciones y datos del negocio.
+// relaciones y datos del negocio.
 model Category {
-  // CAMPO id: Identificador primario del registro.
+  // Identificador primario del registro.
   id Int @id @default(autoincrement())
-  // CAMPO name: Nombre legible. No puede repetirse.
+  // Nombre legible. No puede repetirse.
   name String @unique @db.VarChar(100)
-  // CAMPO active: Permite desactivar sin borrar historial.
+  // Permite desactivar sin borrar historial.
   active Boolean @default(true)
-  // CAMPO productsByCategory: Colección de registros relacionados; no es una columna que guarde toda la lista.
+  // Colección de registros relacionados; no es una columna que guarde toda la lista.
   productsByCategory Product[] @relation("Product_category")
   @@map("categories")
 }
 
-// PRODUCTS: inventario único y precios decimales.
+// inventario único y precios decimales.
 model Product {
-  // CAMPO id: Identificador primario del registro.
+  // Identificador primario del registro.
   id Int @id @default(autoincrement())
-  // CAMPO categoryId: Clave que vincula este registro con category.
+  // Clave que vincula este registro con category.
   categoryId Int @map("category_id")
-  // CAMPO category: Relación que Prisma permite consultar mediante include/select.
+  // Relación que Prisma permite consultar mediante include/select.
   category Category @relation("Product_category", fields: [categoryId], references: [id], onDelete: Restrict)
-  // CAMPO sku: Código único del repuesto. No puede repetirse.
+  // Código único del repuesto. No puede repetirse.
   sku String @unique @db.VarChar(60)
-  // CAMPO name: Nombre legible.
+  // Nombre legible.
   name String @db.VarChar(150)
-  // CAMPO description: Descripción opcional. Puede estar ausente (null).
+  // Descripción opcional. Puede estar ausente (null).
   description String? 
-  // CAMPO acquisitionCost: Costo interno de compra; se oculta al público.
+  // Costo interno de compra; se oculta al público.
   acquisitionCost Decimal @db.Decimal(12,2) @map("acquisition_cost")
-  // CAMPO salePrice: Precio usado por el servidor al calcular ventas.
+  // Precio usado por el servidor al calcular ventas.
   salePrice Decimal @db.Decimal(12,2) @map("sale_price")
-  // CAMPO stock: Unidades disponibles en el inventario compartido.
+  // Unidades disponibles en el inventario compartido.
   stock Int @default(0)
-  // CAMPO active: Permite desactivar sin borrar historial.
+  // Permite desactivar sin borrar historial.
   active Boolean @default(true)
-  // CAMPO createdAt: Momento de creación.
+  // Momento de creación.
   createdAt DateTime @default(now()) @db.Timestamptz(3) @map("created_at")
-  // CAMPO cartItemsByProduct: Colección de registros relacionados; no es una columna que guarde toda la lista.
+  // Colección de registros relacionados; no es una columna que guarde toda la lista.
   cartItemsByProduct CartItem[] @relation("CartItem_product")
-  // CAMPO orderItemsByProduct: Colección de registros relacionados; no es una columna que guarde toda la lista.
+  // Colección de registros relacionados; no es una columna que guarde toda la lista.
   orderItemsByProduct OrderItem[] @relation("OrderItem_product")
-  // CAMPO inventoryMovementsByProduct: Colección de registros relacionados; no es una columna que guarde toda la lista.
+  // Colección de registros relacionados; no es una columna que guarde toda la lista.
   inventoryMovementsByProduct InventoryMovement[] @relation("InventoryMovement_product")
   @@index([categoryId])
   @@map("products")
 }
 
-// ADDRESSES: relaciones y datos del negocio.
+// relaciones y datos del negocio.
 model Address {
-  // CAMPO id: Identificador primario del registro.
+  // Identificador primario del registro.
   id Int @id @default(autoincrement())
-  // CAMPO userId: Clave que vincula este registro con user.
+  // Clave que vincula este registro con user.
   userId Int @map("user_id")
-  // CAMPO user: Relación que Prisma permite consultar mediante include/select.
+  // Relación que Prisma permite consultar mediante include/select.
   user User @relation("Address_user", fields: [userId], references: [id], onDelete: Restrict)
-  // CAMPO recipientName: Nombre de quien recibe la entrega.
+  // Nombre de quien recibe la entrega.
   recipientName String @db.VarChar(150) @map("recipient_name")
-  // CAMPO phone: Teléfono de contacto.
+  // Teléfono de contacto.
   phone String @db.VarChar(30)
-  // CAMPO addressLine: Dirección personal guardada.
+  // Dirección personal guardada.
   addressLine String @map("address_line")
-  // CAMPO reference: Referencia opcional de dirección o pago, según el modelo. Puede estar ausente (null).
+  // Referencia opcional de dirección o pago, según el modelo. Puede estar ausente (null).
   reference String? 
   @@index([userId])
   @@map("addresses")
 }
 
-// CARTS: relaciones y datos del negocio.
+// relaciones y datos del negocio.
 model Cart {
-  // CAMPO id: Identificador primario del registro.
+  // Identificador primario del registro.
   id Int @id @default(autoincrement())
-  // CAMPO createdById: Clave que vincula este registro con createdBy.
+  // Clave que vincula este registro con createdBy.
   createdById Int @map("created_by_id")
-  // CAMPO createdBy: Relación que Prisma permite consultar mediante include/select.
+  // Relación que Prisma permite consultar mediante include/select.
   createdBy User @relation("Cart_createdBy", fields: [createdById], references: [id], onDelete: Restrict)
-  // CAMPO customerId: Clave que vincula este registro con customer. Puede estar ausente (null).
+  // Clave que vincula este registro con customer. Puede estar ausente (null).
   customerId Int? @map("customer_id")
-  // CAMPO customer: Relación que Prisma permite consultar mediante include/select. Puede estar ausente (null).
+  // Relación que Prisma permite consultar mediante include/select. Puede estar ausente (null).
   customer User? @relation("Cart_customer", fields: [customerId], references: [id], onDelete: Restrict)
-  // CAMPO channel: Canal POS, WEB o SOCIAL.
+  // Canal POS, WEB o SOCIAL.
   channel SalesChannel 
-  // CAMPO status: Estado permitido del registro; las reglas de transición están en el servicio.
+  // Estado permitido del registro; las reglas de transición están en el servicio.
   status CartStatus @default(OPEN)
-  // CAMPO createdAt: Momento de creación.
+  // Momento de creación.
   createdAt DateTime @default(now()) @db.Timestamptz(3) @map("created_at")
-  // CAMPO items: Colección de registros relacionados; no es una columna que guarde toda la lista.
+  // Colección de registros relacionados; no es una columna que guarde toda la lista.
   items CartItem[] @relation("CartItem_cart")
-  // CAMPO order: Relación que Prisma permite consultar mediante include/select. Puede estar ausente (null).
+  // Relación que Prisma permite consultar mediante include/select. Puede estar ausente (null).
   order Order? @relation("Order_cart")
   @@map("carts")
 }
 
-// CART_ITEMS: relaciones y datos del negocio.
+// relaciones y datos del negocio.
 model CartItem {
-  // CAMPO id: Identificador primario del registro.
+  // Identificador primario del registro.
   id Int @id @default(autoincrement())
-  // CAMPO cartId: Clave que vincula este registro con cart.
+  // Clave que vincula este registro con cart.
   cartId Int @map("cart_id")
-  // CAMPO cart: Relación que Prisma permite consultar mediante include/select.
+  // Relación que Prisma permite consultar mediante include/select.
   cart Cart @relation("CartItem_cart", fields: [cartId], references: [id], onDelete: Restrict)
-  // CAMPO productId: Clave que vincula este registro con product.
+  // Clave que vincula este registro con product.
   productId Int @map("product_id")
-  // CAMPO product: Relación que Prisma permite consultar mediante include/select.
+  // Relación que Prisma permite consultar mediante include/select.
   product Product @relation("CartItem_product", fields: [productId], references: [id], onDelete: Restrict)
-  // CAMPO quantity: Cantidad de unidades de una línea.
+  // Cantidad de unidades de una línea.
   quantity Int 
   @@unique([cartId, productId])
   @@map("cart_items")
 }
 
-// CASH_SESSIONS: relaciones y datos del negocio.
+// relaciones y datos del negocio.
 model CashSession {
-  // CAMPO id: Identificador primario del registro.
+  // Identificador primario del registro.
   id Int @id @default(autoincrement())
-  // CAMPO openedById: Clave que vincula este registro con openedBy.
+  // Clave que vincula este registro con openedBy.
   openedById Int @map("opened_by_id")
-  // CAMPO openedBy: Relación que Prisma permite consultar mediante include/select.
+  // Relación que Prisma permite consultar mediante include/select.
   openedBy User @relation("CashSession_openedBy", fields: [openedById], references: [id], onDelete: Restrict)
-  // CAMPO closedById: Clave que vincula este registro con closedBy. Puede estar ausente (null).
+  // Clave que vincula este registro con closedBy. Puede estar ausente (null).
   closedById Int? @map("closed_by_id")
-  // CAMPO closedBy: Relación que Prisma permite consultar mediante include/select. Puede estar ausente (null).
+  // Relación que Prisma permite consultar mediante include/select. Puede estar ausente (null).
   closedBy User? @relation("CashSession_closedBy", fields: [closedById], references: [id], onDelete: Restrict)
-  // CAMPO openingAmount: Fondo inicial de efectivo.
+  // Fondo inicial de efectivo.
   openingAmount Decimal @db.Decimal(12,2) @map("opening_amount")
-  // CAMPO countedAmount: Efectivo contado al cierre. Puede estar ausente (null).
+  // Efectivo contado al cierre. Puede estar ausente (null).
   countedAmount Decimal? @db.Decimal(12,2) @map("counted_amount")
-  // CAMPO expectedAmount: Efectivo esperado fijado al cierre. Puede estar ausente (null).
+  // Efectivo esperado fijado al cierre. Puede estar ausente (null).
   expectedAmount Decimal? @db.Decimal(12,2) @map("expected_amount")
-  // CAMPO openedAt: Momento de apertura.
+  // Momento de apertura.
   openedAt DateTime @default(now()) @db.Timestamptz(3) @map("opened_at")
-  // CAMPO closedAt: Momento de cierre; null indica caja abierta. Puede estar ausente (null).
+  // Momento de cierre; null indica caja abierta. Puede estar ausente (null).
   closedAt DateTime? @db.Timestamptz(3) @map("closed_at")
-  // CAMPO orders: Colección de registros relacionados; no es una columna que guarde toda la lista.
+  // Colección de registros relacionados; no es una columna que guarde toda la lista.
   orders Order[] @relation("Order_cashSession")
   @@map("cash_sessions")
 }
 
-// ORDERS: venta confirmada con datos históricos de entrega.
+// venta confirmada con datos históricos de entrega.
 model Order {
-  // CAMPO id: Identificador primario del registro.
+  // Identificador primario del registro.
   id Int @id @default(autoincrement())
-  // CAMPO receiptNumber: Número único del comprobante. No puede repetirse.
+  // Número único del comprobante. No puede repetirse.
   receiptNumber String @unique @db.VarChar(60) @map("receipt_number")
-  // CAMPO idempotencyKey: Clave única que identifica un checkout y permite reintentos sin duplicarlo. No puede repetirse.
+  // Clave única que identifica un checkout y permite reintentos sin duplicarlo. No puede repetirse.
   idempotencyKey String @unique @db.VarChar(100) @map("idempotency_key")
-  // CAMPO cartId: Clave que vincula este registro con cart. Puede estar ausente (null). No puede repetirse.
+  // Clave que vincula este registro con cart. Puede estar ausente (null). No puede repetirse.
   cartId Int? @unique @map("cart_id")
-  // CAMPO cart: Relación que Prisma permite consultar mediante include/select. Puede estar ausente (null).
+  // Relación que Prisma permite consultar mediante include/select. Puede estar ausente (null).
   cart Cart? @relation("Order_cart", fields: [cartId], references: [id], onDelete: Restrict)
-  // CAMPO customerId: Clave que vincula este registro con customer. Puede estar ausente (null).
+  // Clave que vincula este registro con customer. Puede estar ausente (null).
   customerId Int? @map("customer_id")
-  // CAMPO customer: Relación que Prisma permite consultar mediante include/select. Puede estar ausente (null).
+  // Relación que Prisma permite consultar mediante include/select. Puede estar ausente (null).
   customer User? @relation("Order_customer", fields: [customerId], references: [id], onDelete: Restrict)
-  // CAMPO createdById: Clave que vincula este registro con createdBy.
+  // Clave que vincula este registro con createdBy.
   createdById Int @map("created_by_id")
-  // CAMPO createdBy: Relación que Prisma permite consultar mediante include/select.
+  // Relación que Prisma permite consultar mediante include/select.
   createdBy User @relation("Order_createdBy", fields: [createdById], references: [id], onDelete: Restrict)
-  // CAMPO cashSessionId: Clave que vincula este registro con cashSession. Puede estar ausente (null).
+  // Clave que vincula este registro con cashSession. Puede estar ausente (null).
   cashSessionId Int? @map("cash_session_id")
-  // CAMPO cashSession: Relación que Prisma permite consultar mediante include/select. Puede estar ausente (null).
+  // Relación que Prisma permite consultar mediante include/select. Puede estar ausente (null).
   cashSession CashSession? @relation("Order_cashSession", fields: [cashSessionId], references: [id], onDelete: Restrict)
-  // CAMPO channel: Canal POS, WEB o SOCIAL.
+  // Canal POS, WEB o SOCIAL.
   channel SalesChannel 
-  // CAMPO status: Estado permitido del registro; las reglas de transición están en el servicio.
+  // Estado permitido del registro; las reglas de transición están en el servicio.
   status OrderStatus 
-  // CAMPO total: Total calculado por el servidor con Decimal.
+  // Total calculado por el servidor con Decimal.
   total Decimal @db.Decimal(12,2)
-  // CAMPO recipientName: Nombre de quien recibe la entrega. Puede estar ausente (null).
+  // Nombre de quien recibe la entrega. Puede estar ausente (null).
   recipientName String? @db.VarChar(150) @map("recipient_name")
-  // CAMPO recipientPhone: Teléfono histórico del destinatario. Puede estar ausente (null).
+  // Teléfono histórico del destinatario. Puede estar ausente (null).
   recipientPhone String? @db.VarChar(30) @map("recipient_phone")
-  // CAMPO deliveryAddress: Copia histórica de la dirección del pedido. Puede estar ausente (null).
+  // Copia histórica de la dirección del pedido. Puede estar ausente (null).
   deliveryAddress String? @map("delivery_address")
-  // CAMPO deliveryReference: Referencia histórica para entrega. Puede estar ausente (null).
+  // Referencia histórica para entrega. Puede estar ausente (null).
   deliveryReference String? @map("delivery_reference")
-  // CAMPO createdAt: Momento de creación.
+  // Momento de creación.
   createdAt DateTime @default(now()) @db.Timestamptz(3) @map("created_at")
-  // CAMPO updatedAt: Momento de última actualización.
+  // Momento de última actualización.
   updatedAt DateTime @default(now()) @db.Timestamptz(3) @updatedAt @map("updated_at")
-  // CAMPO items: Colección de registros relacionados; no es una columna que guarde toda la lista.
+  // Colección de registros relacionados; no es una columna que guarde toda la lista.
   items OrderItem[] @relation("OrderItem_order")
-  // CAMPO payment: Relación que Prisma permite consultar mediante include/select. Puede estar ausente (null).
+  // Relación que Prisma permite consultar mediante include/select. Puede estar ausente (null).
   payment Payment? @relation("Payment_order")
-  // CAMPO movements: Colección de registros relacionados; no es una columna que guarde toda la lista.
+  // Colección de registros relacionados; no es una columna que guarde toda la lista.
   movements InventoryMovement[] @relation("InventoryMovement_order")
-  // CAMPO gatewayAttempts: Colección de registros relacionados; no es una columna que guarde toda la lista.
+  // Colección de registros relacionados; no es una columna que guarde toda la lista.
   gatewayAttempts GatewayAttempt[]
   @@index([customerId, createdAt])
   @@index([channel, status, createdAt])
@@ -1058,98 +1058,98 @@ model Order {
   @@map("orders")
 }
 
-// ORDER_ITEMS: cantidades, precios y costos históricos.
+// cantidades, precios y costos históricos.
 model OrderItem {
-  // CAMPO id: Identificador primario del registro.
+  // Identificador primario del registro.
   id Int @id @default(autoincrement())
-  // CAMPO orderId: Clave que vincula este registro con order.
+  // Clave que vincula este registro con order.
   orderId Int @map("order_id")
-  // CAMPO order: Relación que Prisma permite consultar mediante include/select.
+  // Relación que Prisma permite consultar mediante include/select.
   order Order @relation("OrderItem_order", fields: [orderId], references: [id], onDelete: Restrict)
-  // CAMPO productId: Clave que vincula este registro con product.
+  // Clave que vincula este registro con product.
   productId Int @map("product_id")
-  // CAMPO product: Relación que Prisma permite consultar mediante include/select.
+  // Relación que Prisma permite consultar mediante include/select.
   product Product @relation("OrderItem_product", fields: [productId], references: [id], onDelete: Restrict)
-  // CAMPO productName: Nombre histórico del repuesto vendido.
+  // Nombre histórico del repuesto vendido.
   productName String @db.VarChar(150) @map("product_name")
-  // CAMPO quantity: Cantidad de unidades de una línea.
+  // Cantidad de unidades de una línea.
   quantity Int 
-  // CAMPO unitPrice: Precio histórico por unidad.
+  // Precio histórico por unidad.
   unitPrice Decimal @db.Decimal(12,2) @map("unit_price")
-  // CAMPO unitCost: Costo histórico por unidad; permanece interno.
+  // Costo histórico por unidad; permanece interno.
   unitCost Decimal @db.Decimal(12,2) @map("unit_cost")
   @@unique([orderId, productId])
   @@map("order_items")
 }
 
-// PAYMENTS: relaciones y datos del negocio.
+// relaciones y datos del negocio.
 model Payment {
-  // CAMPO id: Identificador primario del registro.
+  // Identificador primario del registro.
   id Int @id @default(autoincrement())
-  // CAMPO orderId: Clave que vincula este registro con order. No puede repetirse.
+  // Clave que vincula este registro con order. No puede repetirse.
   orderId Int @unique @map("order_id")
-  // CAMPO order: Relación que Prisma permite consultar mediante include/select.
+  // Relación que Prisma permite consultar mediante include/select.
   order Order @relation("Payment_order", fields: [orderId], references: [id], onDelete: Restrict)
-  // CAMPO recordedById: Clave que vincula este registro con recordedBy.
+  // Clave que vincula este registro con recordedBy.
   recordedById Int @map("recorded_by_id")
-  // CAMPO recordedBy: Relación que Prisma permite consultar mediante include/select.
+  // Relación que Prisma permite consultar mediante include/select.
   recordedBy User @relation("Payment_recordedBy", fields: [recordedById], references: [id], onDelete: Restrict)
-  // CAMPO method: Método CASH, CARD o TRANSFER.
+  // Método CASH, CARD o TRANSFER.
   method PaymentMethod 
-  // CAMPO amount: Importe completo registrado en el pago.
+  // Importe completo registrado en el pago.
   amount Decimal @db.Decimal(12,2)
-  // CAMPO reference: Referencia opcional de dirección o pago, según el modelo. Puede estar ausente (null).
+  // Referencia opcional de dirección o pago, según el modelo. Puede estar ausente (null).
   reference String? @db.VarChar(150)
-  // CAMPO paidAt: Momento de registro del pago.
+  // Momento de registro del pago.
   paidAt DateTime @default(now()) @db.Timestamptz(3) @map("paid_at")
   @@map("payments")
 }
 
-// INVENTORY_MOVEMENTS: trazabilidad de cambios en stock.
+// trazabilidad de cambios en stock.
 model InventoryMovement {
-  // CAMPO id: Identificador primario del registro.
+  // Identificador primario del registro.
   id Int @id @default(autoincrement())
-  // CAMPO productId: Clave que vincula este registro con product.
+  // Clave que vincula este registro con product.
   productId Int @map("product_id")
-  // CAMPO product: Relación que Prisma permite consultar mediante include/select.
+  // Relación que Prisma permite consultar mediante include/select.
   product Product @relation("InventoryMovement_product", fields: [productId], references: [id], onDelete: Restrict)
-  // CAMPO orderId: Clave que vincula este registro con order. Puede estar ausente (null).
+  // Clave que vincula este registro con order. Puede estar ausente (null).
   orderId Int? @map("order_id")
-  // CAMPO order: Relación que Prisma permite consultar mediante include/select. Puede estar ausente (null).
+  // Relación que Prisma permite consultar mediante include/select. Puede estar ausente (null).
   order Order? @relation("InventoryMovement_order", fields: [orderId], references: [id], onDelete: Restrict)
-  // CAMPO actorId: Clave que vincula este registro con actor.
+  // Clave que vincula este registro con actor.
   actorId Int @map("actor_id")
-  // CAMPO actor: Relación que Prisma permite consultar mediante include/select.
+  // Relación que Prisma permite consultar mediante include/select.
   actor User @relation("InventoryMovement_actor", fields: [actorId], references: [id], onDelete: Restrict)
-  // CAMPO type: Tipo de movimiento de inventario.
+  // Tipo de movimiento de inventario.
   type MovementType 
-  // CAMPO quantityDelta: Unidades agregadas si positivo o retiradas si negativo.
+  // Unidades agregadas si positivo o retiradas si negativo.
   quantityDelta Int @map("quantity_delta")
-  // CAMPO reason: Motivo del movimiento. Puede estar ausente (null).
+  // Motivo del movimiento. Puede estar ausente (null).
   reason String? 
-  // CAMPO createdAt: Momento de creación.
+  // Momento de creación.
   createdAt DateTime @default(now()) @db.Timestamptz(3) @map("created_at")
   @@index([productId, createdAt])
   @@map("inventory_movements")
 }
 
-// PASARELA: guarda intentos y su correlación; nunca números de tarjeta ni la llave secreta.
+// guarda intentos y su correlación; nunca números de tarjeta ni la llave secreta.
 model GatewayAttempt {
-  // CAMPO id: Identificador primario del registro.
+  // Identificador primario del registro.
   id String @id @default(uuid()) @db.Uuid
-  // CAMPO orderId: Clave que vincula este registro con order.
+  // Clave que vincula este registro con order.
   orderId Int @map("order_id")
-  // CAMPO order: Relación que Prisma permite consultar mediante include/select.
+  // Relación que Prisma permite consultar mediante include/select.
   order Order @relation(fields: [orderId], references: [id], onDelete: Restrict)
-  // CAMPO gatewayId: Identificador remoto de MockPay; único cuando existe. Puede estar ausente (null). No puede repetirse.
+  // Identificador remoto de MockPay; único cuando existe. Puede estar ausente (null). No puede repetirse.
   gatewayId String? @unique @map("gateway_id")
-  // CAMPO checkoutUrl: Dirección normalizada del formulario externo. Puede estar ausente (null).
+  // Dirección normalizada del formulario externo. Puede estar ausente (null).
   checkoutUrl String? @map("checkout_url")
-  // CAMPO status: Estado permitido del registro; las reglas de transición están en el servicio.
+  // Estado permitido del registro; las reglas de transición están en el servicio.
   status String @default("CREATING") @db.VarChar(20)
-  // CAMPO createdAt: Momento de creación.
+  // Momento de creación.
   createdAt DateTime @default(now()) @db.Timestamptz(3) @map("created_at")
-  // CAMPO updatedAt: Momento de última actualización.
+  // Momento de última actualización.
   updatedAt DateTime @updatedAt @db.Timestamptz(3) @map("updated_at")
   @@index([orderId])
   @@map("gateway_attempts")
@@ -1167,8 +1167,8 @@ Carga usuarios y repuestos ficticios; recorre los servicios reales para generar 
 ### Código completo para leer junto a la explicación
 
 ```typescript
-// ARCHIVO: Carga usuarios y repuestos ficticios; recorre los servicios reales para generar pedidos y caja de demostración.
-// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
+// Carga usuarios y repuestos ficticios; recorre los servicios reales para generar pedidos y caja de demostración.
+
 import 'reflect-metadata';
 import 'dotenv/config';
 import { NestFactory } from '@nestjs/core';
@@ -1179,8 +1179,8 @@ import { SalesService } from '../src/sales/sales.service';
 import { CashService } from '../src/cash/cash.module';
 import { Actor } from '../src/common/security';
 
-// SEMILLA REUTILIZABLE: agrega demostraciones sin borrar ventas o modificar claves existentes.
-// BLOQUE seed: Crea ejemplos faltantes con contraseña de entorno y reutiliza servicios para respetar reglas reales.
+// agrega demostraciones sin borrar ventas o modificar claves existentes.
+// Crea ejemplos faltantes con contraseña de entorno y reutiliza servicios para respetar reglas reales.
 async function seed() {
   const password = process.env.SEED_PASSWORD;
   if (!password || password.length < 12 || Buffer.byteLength(password) > 72) throw new Error('Define SEED_PASSWORD con 12 caracteres como mínimo y máximo 72 bytes');
@@ -1266,9 +1266,9 @@ Indica al CLI de Prisma dónde están el schema, las migraciones y la conexión 
 ### Código completo para leer junto a la explicación
 
 ```typescript
-// ARCHIVO: Indica al CLI de Prisma dónde están el schema, las migraciones y la conexión privada.
-// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
-// CONFIGURACIÓN CLI: migraciones y generación; la URL viene del entorno.
+// Indica al CLI de Prisma dónde están el schema, las migraciones y la conexión privada.
+
+// migraciones y generación; la URL viene del entorno.
 import 'dotenv/config';
 import { defineConfig, env } from 'prisma/config';
 export default defineConfig({
@@ -1297,9 +1297,9 @@ Vincula el historial local al remoto desde la consola del usuario, conservando l
 ### Código completo para leer junto a la explicación
 
 ```powershell
-# ARCHIVO: Vincula el historial local al remoto desde la consola del usuario, conservando los archivos de trabajo.
-# ESTUDIO: pasos y bloques explicados en docs/GUIA-CODIGO-COMPLETA.md.
-# SINCRONIZACIÓN: ejecuta este archivo en tu propia consola para conectar el historial local.
+# Vincula el historial local al remoto desde la consola del usuario, conservando los archivos de trabajo.
+
+# ejecuta este archivo en tu propia consola para conectar el historial local.
 # La subida inicial se realizó por la API de GitHub; este entorno protege la carpeta .git.
 $ErrorActionPreference = 'Stop'
 $projectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
@@ -1308,7 +1308,7 @@ Set-Location -LiteralPath $projectRoot
 if ($LASTEXITCODE -ne 0) { throw 'No se pudo obtener el historial de GitHub. Completa la autenticación de Git si se solicita.' }
 & git rev-parse --verify HEAD 2>$null | Out-Null
 if ($LASTEXITCODE -ne 0) {
-  # MIXED: crea la referencia y el índice; conserva todos los archivos del directorio de trabajo.
+  # crea la referencia y el índice; conserva todos los archivos del directorio de trabajo.
   & git reset --mixed FETCH_HEAD
   if ($LASTEXITCODE -ne 0) { throw 'No se pudo conectar el historial local.' }
   & git branch --set-upstream-to=origin/main main
@@ -1324,9 +1324,9 @@ Prepara configuración privada local y credenciales aleatorias sin imprimir secr
 ### Código completo para leer junto a la explicación
 
 ```javascript
-// ARCHIVO: Prepara configuración privada local y credenciales aleatorias sin imprimir secretos.
-// ESTUDIO: pasos y bloques explicados en docs/GUIA-CODIGO-COMPLETA.md.
-// CONFIGURACIÓN LOCAL: genera secretos privados y preserva las contraseñas del seed existente.
+// Prepara configuración privada local y credenciales aleatorias sin imprimir secretos.
+
+// genera secretos privados y preserva las contraseñas del seed existente.
 const fs = require('node:fs');
 const path = require('node:path');
 const { randomBytes } = require('node:crypto');
@@ -1343,7 +1343,7 @@ for (const line of existing.split(/\r?\n/)) {
   const match = line.match(/^([A-Z_]+)=(.*)$/);
   if (match) current[match[1]] = match[2].replace(/^['"]|['"]$/g, '');
 }
-// PROTECCIÓN: el ayudante local no reemplaza una conexión remota configurada manualmente.
+// el ayudante local no reemplaza una conexión remota configurada manualmente.
 if (current.DATABASE_URL && !['localhost', '127.0.0.1'].includes(new URL(current.DATABASE_URL).hostname)) {
   throw new Error('Tu .env apunta a una base remota. Usa npm start con esa configuración o guarda tu .env antes de preparar el entorno local.');
 }
@@ -1362,9 +1362,9 @@ Solicita detener PostgreSQL local de forma ordenada.
 ### Código completo para leer junto a la explicación
 
 ```powershell
-# ARCHIVO: Solicita detener PostgreSQL local de forma ordenada.
-# ESTUDIO: pasos y bloques explicados en docs/GUIA-CODIGO-COMPLETA.md.
-# PARADA: detiene únicamente PostgreSQL de este proyecto; la API se detiene con Ctrl+C.
+# Solicita detener PostgreSQL local de forma ordenada.
+
+# detiene únicamente PostgreSQL de este proyecto; la API se detiene con Ctrl+C.
 & (Join-Path $PSScriptRoot 'local-db.ps1') -Action Stop
 ```
 
@@ -1375,9 +1375,9 @@ Coordina configuración, PostgreSQL, instalación, Prisma, migraciones, build, s
 ### Código completo para leer junto a la explicación
 
 ```powershell
-# ARCHIVO: Coordina configuración, PostgreSQL, instalación, Prisma, migraciones, build, seed y arranque.
-# ESTUDIO: pasos y bloques explicados en docs/GUIA-CODIGO-COMPLETA.md.
-# INICIO: configura secretos, enciende PostgreSQL y ejecuta la API en esta consola.
+# Coordina configuración, PostgreSQL, instalación, Prisma, migraciones, build, seed y arranque.
+
+# configura secretos, enciende PostgreSQL y ejecuta la API en esta consola.
 param([switch]$Preparar, [switch]$EngineFallback)
 $ErrorActionPreference = 'Stop'
 $projectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
@@ -1415,9 +1415,9 @@ Inicializa, inicia o detiene únicamente el clúster PostgreSQL propio del proye
 ### Código completo para leer junto a la explicación
 
 ```powershell
-# ARCHIVO: Inicializa, inicia o detiene únicamente el clúster PostgreSQL propio del proyecto.
-# ESTUDIO: pasos y bloques explicados en docs/GUIA-CODIGO-COMPLETA.md.
-# POSTGRESQL LOCAL: administra únicamente el clúster de este proyecto, en .local/postgres.
+# Inicializa, inicia o detiene únicamente el clúster PostgreSQL propio del proyecto.
+
+# administra únicamente el clúster de este proyecto, en .local/postgres.
 param([ValidateSet('Start', 'Stop')][string]$Action = 'Start', [string]$PgBin = '')
 $ErrorActionPreference = 'Stop'
 $projectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
@@ -1432,7 +1432,7 @@ if (!(Test-Path -LiteralPath (Join-Path $localDir 'config.json'))) { throw 'Ejec
 $config = Get-Content -LiteralPath (Join-Path $localDir 'config.json') -Raw | ConvertFrom-Json
 $port = [int]$config.port
 if ($Action -eq 'Stop') {
-  # PARADA ORDENADA: pg_ctl recibe el directorio exacto del clúster propio.
+  # pg_ctl recibe el directorio exacto del clúster propio.
   if (Test-Path -LiteralPath (Join-Path $dataDir 'postmaster.pid')) {
     & (Join-Path $PgBin 'pg_ctl.exe') -D $dataDir -m fast -w stop
     if ($LASTEXITCODE -ne 0) { throw 'No se pudo detener PostgreSQL local.' }
@@ -1443,7 +1443,7 @@ if (!(Test-Path -LiteralPath (Join-Path $dataDir 'PG_VERSION'))) {
   $passwordFile = Join-Path $localDir 'init-password.tmp'
   [IO.File]::WriteAllText($passwordFile, [string]$config.password)
   try {
-    # AUTENTICACIÓN: SCRAM con clave aleatoria y conexión limitada a loopback.
+    # SCRAM con clave aleatoria y conexión limitada a loopback.
     & (Join-Path $PgBin 'initdb.exe') -D $dataDir -U $config.user -A scram-sha-256 --encoding=UTF8 --locale=C "--pwfile=$passwordFile"
     if ($LASTEXITCODE -ne 0) { throw 'No se pudo inicializar el clúster local.' }
   } finally { Remove-Item -LiteralPath $passwordFile -ErrorAction SilentlyContinue }
@@ -1459,7 +1459,7 @@ try {
   if (!$running) {
     & (Join-Path $PgBin 'pg_isready.exe') -h 127.0.0.1 -p $port *> $null
     if ($LASTEXITCODE -eq 0) { throw "El puerto $port está ocupado por otro clúster. No se modificará esa base." }
-    # SEGUNDO PLANO: ventana oculta; las rutas de log permanecen dentro del proyecto.
+    # ventana oculta; las rutas de log permanecen dentro del proyecto.
     $process = Start-Process -FilePath (Join-Path $PgBin 'postgres.exe') -ArgumentList @('-D', ('"' + $dataDir + '"'), '-p', $port, '-h', '127.0.0.1') -WorkingDirectory $projectRoot -WindowStyle Hidden -RedirectStandardOutput (Join-Path $localDir 'postgres-out.log') -RedirectStandardError (Join-Path $localDir 'postgres-error.log') -PassThru
     for ($attempt = 0; $attempt -lt 30; $attempt++) {
       & (Join-Path $PgBin 'pg_isready.exe') -h 127.0.0.1 -p $port *> $null
@@ -1468,7 +1468,7 @@ try {
     }
     if ($LASTEXITCODE -ne 0) { throw 'PostgreSQL no inició. Revisa .local/postgres-error.log.' }
   }
-  # COMPROBACIÓN: autenticar verifica que se trata de nuestro clúster.
+  # autenticar verifica que se trata de nuestro clúster.
   $exists = & (Join-Path $PgBin 'psql.exe') -h 127.0.0.1 -p $port -U $config.user -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname = 'pos_ecommerce'"
   if ($LASTEXITCODE -ne 0) { throw 'No se pudo autenticar en PostgreSQL local.' }
   if (($exists -join '').Trim() -ne '1') {
@@ -1486,9 +1486,9 @@ Aplica las migraciones usando el motor oficial Prisma cuando un entorno restring
 ### Código completo para leer junto a la explicación
 
 ```powershell
-# ARCHIVO: Aplica las migraciones usando el motor oficial Prisma cuando un entorno restringido no permite lanzarlo desde Node.
-# ESTUDIO: pasos y bloques explicados en docs/GUIA-CODIGO-COMPLETA.md.
-# ADAPTADOR LOCAL: usa el mismo motor Prisma cuando el entorno restringe spawn de Node.
+# Aplica las migraciones usando el motor oficial Prisma cuando un entorno restringido no permite lanzarlo desde Node.
+
+# usa el mismo motor Prisma cuando el entorno restringe spawn de Node.
 # El flujo habitual sigue siendo npm run db:deploy; este adaptador usa la versión del lockfile.
 param([string]$DatabaseUrl = '')
 $ErrorActionPreference = 'Stop'
@@ -1506,8 +1506,8 @@ $directories = @(Get-ChildItem -LiteralPath $migrationRoot -Directory | Sort-Obj
 $list = @{ baseDir=$migrationRoot; lockfile=@{ path='migration_lock.toml'; content=[IO.File]::ReadAllText((Join-Path $migrationRoot 'migration_lock.toml')) }; migrationDirectories=$directories; shadowDbInitScript='' }
 $rpc = @{ id=1; jsonrpc='2.0'; method='applyMigrations'; params=@{ migrationsList=$list; filters=@{ externalTables=@(); externalEnums=@() } } } | ConvertTo-Json -Depth 15 -Compress
 $source = @{url=$DatabaseUrl} | ConvertTo-Json -Compress
-# HISTORIAL: el motor ejecuta SQL y registra checksums en _prisma_migrations.
-# COMUNICACIÓN: mantener stdin abierto hasta la respuesta evita cortar una migración en curso.
+# el motor ejecuta SQL y registra checksums en _prisma_migrations.
+# mantener stdin abierto hasta la respuesta evita cortar una migración en curso.
 $engineInfo = [Diagnostics.ProcessStartInfo]::new()
 $engineInfo.FileName = Join-Path $projectRoot 'node_modules/@prisma/engines/schema-engine-windows.exe'
 $engineInfo.Arguments = '--datamodels "' + (Join-Path $projectRoot 'prisma/schema.prisma') + '" --datasource "' + $source.Replace('"', '\"') + '"'
@@ -1556,9 +1556,9 @@ Prepara la base exclusiva de pruebas y ejecuta e2e sin limpiar la base de demost
 ### Código completo para leer junto a la explicación
 
 ```powershell
-# ARCHIVO: Prepara la base exclusiva de pruebas y ejecuta e2e sin limpiar la base de demostración.
-# ESTUDIO: pasos y bloques explicados en docs/GUIA-CODIGO-COMPLETA.md.
-# PRUEBAS: usa una base exclusiva terminada en _test y preserva la demostración.
+# Prepara la base exclusiva de pruebas y ejecuta e2e sin limpiar la base de demostración.
+
+# usa una base exclusiva terminada en _test y preserva la demostración.
 param([switch]$EngineFallback)
 $ErrorActionPreference = 'Stop'
 $projectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
@@ -1587,7 +1587,7 @@ try {
   else { & npm.cmd run db:deploy; if ($LASTEXITCODE -ne 0) { throw 'Falló la migración de pruebas.' } }
   & npm.cmd run build
   if ($LASTEXITCODE -ne 0) { throw 'Falló la compilación.' }
-  # EJECUCIÓN: el mismo proceso evita restricciones de procesos hijos.
+  # el mismo proceso evita restricciones de procesos hijos.
   & node test/e2e.cjs
   if ($LASTEXITCODE -ne 0) { throw 'Las pruebas fallaron.' }
 } finally { $env:DATABASE_URL = $previousDatabase; $env:TEST_DATABASE_URL = $previousTest }
@@ -1609,29 +1609,29 @@ Recibe solicitudes HTTP, valida parámetros con DTO/Pipes y delega reglas en ser
 ### Código completo para leer junto a la explicación
 
 ```typescript
-// ARCHIVO: Recibe solicitudes HTTP, valida parámetros con DTO/Pipes y delega reglas en servicios.
-// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
+// Recibe solicitudes HTTP, valida parámetros con DTO/Pipes y delega reglas en servicios.
+
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Actor, CurrentUser, Roles } from '../common/security';
 import { AddressDto, UpdateAddressDto } from './addresses.dto';
 import { AddressesService } from './addresses.service';
-// RUTAS: reciben DTOs validados y delegan la autorización de propiedad al servicio.
-// CLASE AddressesController: Recibe solicitudes HTTP, valida parámetros con DTO/Pipes y delega reglas en servicios.
+// reciben DTOs validados y delegan la autorización de propiedad al servicio.
+
 @ApiTags('Direcciones') @ApiBearerAuth() @Roles('CUSTOMER') @Controller('addresses')
 export class AddressesController {
-  // BLOQUE constructor: Inyecta las dependencias necesarias; NestJS proporciona estas instancias al construir la clase.
+  
   constructor(private readonly service: AddressesService) {}
-  // BLOQUE list: Recibe datos de la ruta y delega list al servicio; los decoradores definen HTTP, documentación y permisos.
+  // Pasa los datos de esta ruta al método list del servicio.
   @Get() @ApiOperation({ summary: 'Mis direcciones' })
   list(@CurrentUser() u: Actor) { return this.service.list(u.id); }
-  // BLOQUE create: Recibe datos de la ruta y delega create al servicio; los decoradores definen HTTP, documentación y permisos.
+  // Pasa los datos de esta ruta al método create del servicio.
   @Post() @ApiOperation({ summary: 'Guardar dirección personal' })
   create(@Body() dto: AddressDto, @CurrentUser() u: Actor) { return this.service.create(dto, u.id); }
-  // BLOQUE update: Recibe datos de la ruta y delega update al servicio; los decoradores definen HTTP, documentación y permisos.
+  // Pasa los datos de esta ruta al método update del servicio.
   @Patch(':id') @ApiOperation({ summary: 'Editar dirección sin alterar pedidos históricos' })
   async update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateAddressDto, @CurrentUser() u: Actor) { return this.service.update(id, dto, u.id); }
-  // BLOQUE remove: Recibe datos de la ruta y delega remove al servicio; los decoradores definen HTTP, documentación y permisos.
+  // Pasa los datos de esta ruta al método remove del servicio.
   @Delete(':id') @ApiOperation({ summary: 'Eliminar dirección guardada' })
   async remove(@Param('id', ParseIntPipe) id: number, @CurrentUser() u: Actor) { return this.service.remove(id, u.id); }
 }
@@ -1653,23 +1653,23 @@ Declara contratos de entrada, validadores y ejemplos Swagger. Un tipo TypeScript
 ### Código completo para leer junto a la explicación
 
 ```typescript
-// ARCHIVO: Declara contratos de entrada, validadores y ejemplos Swagger. Un tipo TypeScript solo no valida un JSON recibido.
-// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
+// Declara contratos de entrada, validadores y ejemplos Swagger. Un tipo TypeScript solo no valida un JSON recibido.
+
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
-// DIRECCIÓN PERSONAL: únicamente el dueño puede consultarla o modificarla.
-// CLASE AddressDto: contrato de entrada cuyos decoradores comprueban los datos recibidos.
+// únicamente el dueño puede consultarla o modificarla.
+
 export class AddressDto {
-  // CAMPO recipientName: string; declarado en el contrato. Los decoradores de abajo documentan y validan este valor.
+  // Nombre de quien recibirá el pedido.
   @ApiProperty({ example: 'Ana López' }) @IsString() @MinLength(2) @MaxLength(150) recipientName: string;
-  // CAMPO phone: string; declarado en el contrato. Los decoradores de abajo documentan y validan este valor.
+  // Teléfono de contacto.
   @ApiProperty({ example: '5555-0101' }) @IsString() @MinLength(5) @MaxLength(30) phone: string;
-  // CAMPO addressLine: string; declarado en el contrato. Los decoradores de abajo documentan y validan este valor.
+  // Dirección guardada por el cliente.
   @ApiProperty({ example: 'Zona 1, Ciudad de Guatemala' }) @IsString() @MinLength(5) @MaxLength(500) addressLine: string;
-  // CAMPO reference: string; opcional. Los decoradores de abajo documentan y validan este valor.
+  // Referencia opcional para identificar la dirección o el pago.
   @ApiPropertyOptional({ example: 'Portón azul' }) @IsOptional() @IsString() @MaxLength(500) reference?: string;
 }
-// CLASE UpdateAddressDto: contrato de entrada cuyos decoradores comprueban los datos recibidos.
+
 export class UpdateAddressDto extends PartialType(AddressDto) {}
 ```
 
@@ -1684,13 +1684,13 @@ Registra controladores y servicios para que NestJS pueda construir sus dependenc
 ### Código completo para leer junto a la explicación
 
 ```typescript
-// ARCHIVO: Registra controladores y servicios para que NestJS pueda construir sus dependencias.
-// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
+// Registra controladores y servicios para que NestJS pueda construir sus dependencias.
+
 import { Module } from '@nestjs/common';
 import { AddressesController } from './addresses.controller';
 import { AddressesService } from './addresses.service';
-// MÓDULO: registra las dependencias de las direcciones personales.
-// CLASE AddressesModule: agrupa y registra dependencias en NestJS.
+// registra las dependencias de las direcciones personales.
+
 @Module({ controllers: [AddressesController], providers: [AddressesService] })
 export class AddressesModule {}
 ```
@@ -1712,33 +1712,33 @@ Guarda y modifica direcciones del usuario autenticado, comprobando propiedad.
 ### Código completo para leer junto a la explicación
 
 ```typescript
-// ARCHIVO: Guarda y modifica direcciones del usuario autenticado, comprobando propiedad.
-// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
+// Guarda y modifica direcciones del usuario autenticado, comprobando propiedad.
+
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AddressDto, UpdateAddressDto } from './addresses.dto';
-// PROPIEDAD: el token determina el dueño; nunca se acepta userId desde el cliente.
-// CLASE AddressesService: Guarda y modifica direcciones del usuario autenticado, comprobando propiedad.
+// el token determina el dueño; nunca se acepta userId desde el cliente.
+
 @Injectable()
 export class AddressesService {
-  // BLOQUE constructor: Inyecta las dependencias necesarias; NestJS proporciona estas instancias al construir la clase.
+  
   constructor(private readonly prisma: PrismaService) {}
-  // BLOQUE own: Busca una dirección y rechaza su uso si pertenece a otra persona.
+  // Busca una dirección y rechaza su uso si pertenece a otra persona.
   private async own(id: number, userId: number) {
     const address = await this.prisma.address.findUnique({ where: { id } });
     if (!address) throw new NotFoundException('Dirección no encontrada');
     if (address.userId !== userId) throw new ForbiddenException('Dirección ajena');
   }
-  // BLOQUE list: Consulta el listado correspondiente, filtrado o limitado según las reglas del servicio.
+  // Consulta los registros que permite este servicio.
   list(userId: number) { return this.prisma.address.findMany({ where: { userId } }); }
-  // BLOQUE create: Guarda una dirección con userId obtenido del token.
+  // Guarda una dirección con userId obtenido del token.
   create(dto: AddressDto, userId: number) { return this.prisma.address.create({ data: { ...dto, userId } }); }
-  // BLOQUE update: Aplica cambios permitidos por el DTO; comprueba propiedad o categoría según este servicio.
+  // Aplica cambios permitidos por el DTO; comprueba propiedad o categoría según este servicio.
   async update(id: number, dto: UpdateAddressDto, userId: number) {
     await this.own(id, userId);
     return this.prisma.address.update({ where: { id }, data: dto });
   }
-  // BLOQUE remove: Retira el registro autorizado según las reglas de este servicio.
+  // Retira el registro autorizado según las reglas de este servicio.
   async remove(id: number, userId: number) {
     await this.own(id, userId);
     return this.prisma.address.delete({ where: { id } });
@@ -1760,8 +1760,8 @@ Reúne los módulos, valida variables con Joi y registra Guards globales. Incluy
 ### Código completo para leer junto a la explicación
 
 ```typescript
-// ARCHIVO: Reúne los módulos, valida variables con Joi y registra Guards globales. Incluye la ruta de salud que consulta PostgreSQL.
-// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
+// Reúne los módulos, valida variables con Joi y registra Guards globales. Incluye la ruta de salud que consulta PostgreSQL.
+
 import { Controller, Get, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
@@ -1777,18 +1777,18 @@ import { SalesModule } from './sales/sales.module';
 import { CashModule } from './cash/cash.module';
 import { MockPayModule } from './mockpay/mockpay.module';
 
-// CLASE HealthController: agrupa y registra dependencias en NestJS.
+
 @ApiTags('Estado') @Controller('health')
 class HealthController {
-  // BLOQUE constructor: Inyecta las dependencias necesarias; NestJS proporciona estas instancias al construir la clase.
+  
   constructor(private readonly prisma: PrismaService, private readonly config: ConfigService) {}
-  // BLOQUE health: Ejecuta SELECT 1 para comprobar la conexión y devuelve estado, tienda y moneda.
+  // Ejecuta SELECT 1 para comprobar la conexión y devuelve estado, tienda y moneda.
   @Public() @Get() @ApiOperation({ summary: 'Comprobar disponibilidad del backend y PostgreSQL' })
   async health() { await this.prisma.$queryRaw`SELECT 1`; return { status: 'ok', store: 'Repuestos', currency: this.config.get('STORE_CURRENCY') }; }
 }
 
-// RAÍZ: valida configuración al iniciar; protege todas las rutas por defecto.
-// CLASE AppModule: agrupa y registra dependencias en NestJS.
+// valida configuración al iniciar; protege todas las rutas por defecto.
+
 @Module({
   imports: [ConfigModule.forRoot({ isGlobal: true, validationSchema: Joi.object({
     DATABASE_URL: Joi.string().required(), JWT_SECRET: Joi.string().min(32).required(),
@@ -1822,8 +1822,8 @@ Recibe solicitudes HTTP, valida parámetros con DTO/Pipes y delega reglas en ser
 ### Código completo para leer junto a la explicación
 
 ```typescript
-// ARCHIVO: Recibe solicitudes HTTP, valida parámetros con DTO/Pipes y delega reglas en servicios.
-// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
+// Recibe solicitudes HTTP, valida parámetros con DTO/Pipes y delega reglas en servicios.
+
 import { Body, Controller, Get, HttpCode, Post, Patch, Param, ParseIntPipe } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
@@ -1831,37 +1831,37 @@ import { AuthService } from './auth.service';
 import { ActiveDto, CreateStaffDto, LoginDto, RegisterDto } from './auth.dto';
 import { Actor, CurrentUser, Public, Roles } from '../common/security';
 
-// RUTAS DE IDENTIDAD: los servicios ejecutan hashing y emisión de tokens.
-// CLASE AuthController: Recibe solicitudes HTTP, valida parámetros con DTO/Pipes y delega reglas en servicios.
+// los servicios ejecutan hashing y emisión de tokens.
+
 @ApiTags('Autenticación') @Controller('auth')
 export class AuthController {
-  // BLOQUE constructor: Inyecta las dependencias necesarias; NestJS proporciona estas instancias al construir la clase.
+  
   constructor(private readonly auth: AuthService) {}
-  // BLOQUE register: Recibe datos de la ruta y delega register al servicio; los decoradores definen HTTP, documentación y permisos.
+  // Pasa los datos de esta ruta al método register del servicio.
   @Public() @Post('register') @Throttle({ default: { limit: 10, ttl: 60000 } })
   @ApiOperation({ summary: 'Registrar cliente; nunca crea cuentas internas' })
   register(@Body() dto: RegisterDto) { return this.auth.register(dto); }
-  // BLOQUE login: Recibe datos de la ruta y delega login al servicio; los decoradores definen HTTP, documentación y permisos.
+  // Pasa los datos de esta ruta al método login del servicio.
   @Public() @Post('login') @HttpCode(200) @Throttle({ default: { limit: 10, ttl: 60000 } })
   @ApiOperation({ summary: 'Obtener JWT válido durante una hora' })
   login(@Body() dto: LoginDto) { return this.auth.login(dto); }
-  // BLOQUE me: Recibe datos de la ruta y delega me al servicio; los decoradores definen HTTP, documentación y permisos.
+  // Pasa los datos de esta ruta al método me del servicio.
   @Get('me') @ApiBearerAuth() @ApiOperation({ summary: 'Consultar identidad del token actual' })
   me(@CurrentUser() user: Actor) { return user; }
 }
 
-// CLASE UsersController: Recibe solicitudes HTTP, valida parámetros con DTO/Pipes y delega reglas en servicios.
+
 @ApiTags('Usuarios internos') @ApiBearerAuth() @Roles('ADMIN') @Controller('users')
 export class UsersController {
-  // BLOQUE constructor: Inyecta las dependencias necesarias; NestJS proporciona estas instancias al construir la clase.
+  
   constructor(private readonly auth: AuthService) {}
-  // BLOQUE create: Recibe datos de la ruta y delega register al servicio; los decoradores definen HTTP, documentación y permisos.
+  // Pasa los datos de esta ruta al método register del servicio.
   @Post() @ApiOperation({ summary: 'Crear usuario por decisión del administrador' })
   create(@Body() dto: CreateStaffDto) { return this.auth.register(dto, dto.role); }
-  // BLOQUE list: Recibe datos de la ruta y delega listUsers al servicio; los decoradores definen HTTP, documentación y permisos.
+  // Pasa los datos de esta ruta al método listUsers del servicio.
   @Get() @ApiOperation({ summary: 'Listar cuentas sin hashes (máximo 100)' })
   list() { return this.auth.listUsers(); }
-  // BLOQUE active: Recibe datos de la ruta y delega setActive al servicio; los decoradores definen HTTP, documentación y permisos.
+  // Pasa los datos de esta ruta al método setActive del servicio.
   @Patch(':id/active') @ApiOperation({ summary: 'Activar o desactivar una cuenta' })
   active(@Param('id', ParseIntPipe) id: number, @Body() dto: ActiveDto, @CurrentUser() user: Actor) {
     return this.auth.setActive(id, dto.active, user);
@@ -1889,41 +1889,41 @@ Declara contratos de entrada, validadores y ejemplos Swagger. Un tipo TypeScript
 ### Código completo para leer junto a la explicación
 
 ```typescript
-// ARCHIVO: Declara contratos de entrada, validadores y ejemplos Swagger. Un tipo TypeScript solo no valida un JSON recibido.
-// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
+// Declara contratos de entrada, validadores y ejemplos Swagger. Un tipo TypeScript solo no valida un JSON recibido.
+
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { IsEmail, IsEnum, IsOptional, IsString, MaxLength, MinLength, IsBoolean } from 'class-validator';
 import { UserRole } from '../generated/prisma/enums';
 
-// ENTRADAS: el registro público no contiene un campo role.
-// CLASE LoginDto: contrato de entrada cuyos decoradores comprueban los datos recibidos.
+// el registro público no contiene un campo role.
+
 export class LoginDto {
-  // CAMPO email: string; declarado en el contrato. Los decoradores de abajo documentan y validan este valor.
+  // Correo que usamos para iniciar sesión.
   @ApiProperty({ example: 'cliente@demo.local' }) @Transform(({ value }) => typeof value === 'string' ? value.trim().toLowerCase() : value) @IsEmail() @MaxLength(254)
   email: string;
-  // CAMPO password: string; declarado en el contrato. Los decoradores de abajo documentan y validan este valor.
+  // Contraseña que llega en la petición; después se compara o se guarda como hash.
   @ApiProperty({ minLength: 10, example: 'TuClaveDeDemo123!' }) @IsString() @MinLength(10) @MaxLength(64)
   password: string;
 }
-// CLASE RegisterDto: contrato de entrada cuyos decoradores comprueban los datos recibidos.
+
 export class RegisterDto extends LoginDto {
-  // CAMPO name: string; declarado en el contrato. Los decoradores de abajo documentan y validan este valor.
+  // Nombre del usuario o del registro.
   @ApiProperty({ example: 'Ana López' }) @IsString() @MinLength(2) @MaxLength(150)
   name: string;
-  // CAMPO phone: string; opcional. Los decoradores de abajo documentan y validan este valor.
+  // Teléfono de contacto.
   @ApiPropertyOptional({ example: '5555-0101' }) @IsOptional() @IsString() @MaxLength(30)
   phone?: string;
 }
-// CLASE CreateStaffDto: contrato de entrada cuyos decoradores comprueban los datos recibidos.
+
 export class CreateStaffDto extends RegisterDto {
-  // CAMPO role: UserRole; declarado en el contrato. Los decoradores de abajo documentan y validan este valor.
+  // Rol que determina los permisos del usuario.
   @ApiProperty({ enum: UserRole }) @IsEnum(UserRole)
   role: UserRole;
 }
-// CLASE ActiveDto: contrato de entrada cuyos decoradores comprueban los datos recibidos.
+
 export class ActiveDto {
-  // CAMPO active: boolean; declarado en el contrato. Los decoradores de abajo documentan y validan este valor.
+  // Indica si la cuenta o el registro sigue disponible.
   @ApiProperty() @IsBoolean()
   active: boolean;
 }
@@ -1940,8 +1940,8 @@ Registra controladores y servicios para que NestJS pueda construir sus dependenc
 ### Código completo para leer junto a la explicación
 
 ```typescript
-// ARCHIVO: Registra controladores y servicios para que NestJS pueda construir sus dependencias.
-// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
+// Registra controladores y servicios para que NestJS pueda construir sus dependencias.
+
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
@@ -1949,8 +1949,8 @@ import { PassportModule } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './jwt.strategy';
 import { AuthController, UsersController } from './auth.controller';
-// MÓDULO: conecta Passport, JWT y las rutas de identidad.
-// CLASE AuthModule: agrupa y registra dependencias en NestJS.
+// conecta Passport, JWT y las rutas de identidad.
+
 @Module({ imports: [PassportModule, JwtModule.registerAsync({ inject: [ConfigService], useFactory: (config: ConfigService) => ({ secret: config.getOrThrow<string>('JWT_SECRET'), signOptions: { expiresIn: '1h', algorithm: 'HS256' } }) })], providers: [AuthService, JwtStrategy], controllers: [AuthController, UsersController] })
 export class AuthModule {}
 ```
@@ -1971,8 +1971,8 @@ Registra cuentas con bcrypt, valida el login, emite JWT y administra activación
 ### Código completo para leer junto a la explicación
 
 ```typescript
-// ARCHIVO: Registra cuentas con bcrypt, valida el login, emite JWT y administra activación de usuarios.
-// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
+// Registra cuentas con bcrypt, valida el login, emite JWT y administra activación de usuarios.
+
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { hash, compare } from 'bcryptjs';
@@ -1982,27 +1982,27 @@ import { Actor } from '../common/security';
 import { UserRole } from '../generated/prisma/enums';
 export const safeUser = { id: true, name: true, email: true, phone: true, role: true, active: true } as const;
 
-// CLASE AuthService: Registra cuentas con bcrypt, valida el login, emite JWT y administra activación de usuarios.
+
 @Injectable()
 export class AuthService {
-  // BLOQUE constructor: Inyecta las dependencias necesarias; NestJS proporciona estas instancias al construir la clase.
+  
   constructor(private readonly prisma: PrismaService, private readonly jwt: JwtService) {}
-  // ADMINISTRACIÓN: las respuestas excluyen siempre el hash de contraseña.
-  // BLOQUE listUsers: Devuelve hasta cien usuarios con select seguro, sin passwordHash.
+  // las respuestas excluyen siempre el hash de contraseña.
+  // Devuelve hasta cien usuarios con select seguro, sin passwordHash.
   listUsers() { return this.prisma.user.findMany({ select: safeUser, take: 100, orderBy: { id: 'asc' } }); }
-  // BLOQUE setActive: Cambia la disponibilidad de una cuenta y evita que el administrador se desactive a sí mismo.
+  // Cambia la disponibilidad de una cuenta y evita que el administrador se desactive a sí mismo.
   setActive(id: number, active: boolean, actor: Actor) {
     if (id === actor.id && !active) throw new BadRequestException('No puedes desactivar tu propia cuenta');
     return this.prisma.user.update({ where: { id }, data: { active }, select: safeUser });
   }
-  // HASH: bcrypt tiene límite de 72 bytes; validar bytes evita truncar contraseñas Unicode.
-  // BLOQUE register: Valida el límite de bytes de bcrypt, calcula un hash con costo 12 y crea el usuario con rol controlado por el servidor.
+  // bcrypt tiene límite de 72 bytes; validar bytes evita truncar contraseñas Unicode.
+  // Valida el límite de bytes de bcrypt, calcula un hash con costo 12 y crea el usuario con rol controlado por el servidor.
   async register(dto: RegisterDto, role: UserRole = UserRole.CUSTOMER) {
     if (Buffer.byteLength(dto.password, 'utf8') > 72) throw new BadRequestException('Contraseña demasiado larga en bytes');
     const passwordHash = await hash(dto.password, 12);
     return this.prisma.user.create({ data: { email: dto.email, name: dto.name, phone: dto.phone, passwordHash, role }, select: safeUser });
   }
-  // BLOQUE login: Busca la cuenta, verifica active y compara bcrypt; devuelve JWT con sub y vigencia de una hora.
+  // Busca la cuenta, verifica active y compara bcrypt; devuelve JWT con sub y vigencia de una hora.
   async login(dto: LoginDto) {
     const user = await this.prisma.user.findUnique({ where: { email: dto.email } });
     if (!user || !user.active || !(await compare(dto.password, user.passwordHash))) throw new UnauthorizedException('Credenciales inválidas');
@@ -2024,8 +2024,8 @@ Passport obtiene el Bearer token, verifica firma/expiración y consulta el estad
 ### Código completo para leer junto a la explicación
 
 ```typescript
-// ARCHIVO: Passport obtiene el Bearer token, verifica firma/expiración y consulta el estado actual del usuario.
-// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
+// Passport obtiene el Bearer token, verifica firma/expiración y consulta el estado actual del usuario.
+
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
@@ -2033,16 +2033,16 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PrismaService } from '../prisma/prisma.service';
 import { safeUser } from './auth.service';
 
-// PASSPORT: verifica firma y expiración; consulta rol/estado actual en cada petición.
-// CLASE JwtStrategy: Passport obtiene el Bearer token, verifica firma/expiración y consulta el estado actual del usuario.
+// verifica firma y expiración; consulta rol/estado actual en cada petición.
+
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  // BLOQUE constructor: Inyecta las dependencias necesarias; NestJS proporciona estas instancias al construir la clase.
+  
   constructor(config: ConfigService, private readonly prisma: PrismaService) {
     super({ jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(), ignoreExpiration: false,
       secretOrKey: config.getOrThrow<string>('JWT_SECRET'), algorithms: ['HS256'] });
   }
-  // BLOQUE validate: Consulta el usuario del sub del JWT y rechaza cuentas que ya no estén activas.
+  // Consulta el usuario del sub del JWT y rechaza cuentas que ya no estén activas.
   async validate(payload: { sub?: unknown }) {
     if (!Number.isInteger(payload.sub)) throw new UnauthorizedException();
     const user = await this.prisma.user.findUnique({ where: { id: payload.sub as number }, select: safeUser });
@@ -2068,29 +2068,29 @@ Recibe solicitudes HTTP, valida parámetros con DTO/Pipes y delega reglas en ser
 ### Código completo para leer junto a la explicación
 
 ```typescript
-// ARCHIVO: Recibe solicitudes HTTP, valida parámetros con DTO/Pipes y delega reglas en servicios.
-// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
+// Recibe solicitudes HTTP, valida parámetros con DTO/Pipes y delega reglas en servicios.
+
 import { Body, Controller, Get, Param, ParseIntPipe, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Actor, CurrentUser, Roles } from '../common/security';
 import { CashService } from './cash.service';
 import { OpenCashDto, CloseCashDto } from './cash.dto';
-// RUTAS: el administrador abre y cierra caja; el cajero puede consultar el listado.
-// CLASE CashController: Recibe solicitudes HTTP, valida parámetros con DTO/Pipes y delega reglas en servicios.
+// el administrador abre y cierra caja; el cajero puede consultar el listado.
+
 @ApiTags('Caja') @ApiBearerAuth() @Controller('cash-sessions')
 export class CashController {
-  // BLOQUE constructor: Inyecta las dependencias necesarias; NestJS proporciona estas instancias al construir la clase.
+  
   constructor(private readonly service: CashService) {}
-  // BLOQUE list: Recibe datos de la ruta y delega list al servicio; los decoradores definen HTTP, documentación y permisos.
+  // Pasa los datos de esta ruta al método list del servicio.
   @Get() @Roles('ADMIN', 'CASHIER') @ApiOperation({ summary: 'Listar últimas 100 sesiones para seleccionar caja abierta' })
   list() { return this.service.list(); }
-  // BLOQUE open: Recibe datos de la ruta y delega open al servicio; los decoradores definen HTTP, documentación y permisos.
+  // Pasa los datos de esta ruta al método open del servicio.
   @Post() @Roles('ADMIN') @ApiOperation({ summary: 'Abrir caja física única' })
   open(@Body() dto: OpenCashDto, @CurrentUser() actor: Actor) { return this.service.open(dto, actor); }
-  // BLOQUE get: Recibe datos de la ruta y delega get al servicio; los decoradores definen HTTP, documentación y permisos.
+  // Pasa los datos de esta ruta al método get del servicio.
   @Get(':id') @Roles('ADMIN') @ApiOperation({ summary: 'Conciliar efectivo y consultar ventas por método de pago' })
   get(@Param('id', ParseIntPipe) id: number) { return this.service.get(id); }
-  // BLOQUE close: Recibe datos de la ruta y delega close al servicio; los decoradores definen HTTP, documentación y permisos.
+  // Pasa los datos de esta ruta al método close del servicio.
   @Post(':id/close') @Roles('ADMIN') @ApiOperation({ summary: 'Cerrar caja con el efectivo contado y calcular diferencia' })
   close(@Param('id', ParseIntPipe) id: number, @Body() dto: CloseCashDto, @CurrentUser() actor: Actor) { return this.service.close(id, dto, actor); }
 }
@@ -2110,19 +2110,19 @@ Declara contratos de entrada, validadores y ejemplos Swagger. Un tipo TypeScript
 ### Código completo para leer junto a la explicación
 
 ```typescript
-// ARCHIVO: Declara contratos de entrada, validadores y ejemplos Swagger. Un tipo TypeScript solo no valida un JSON recibido.
-// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
+// Declara contratos de entrada, validadores y ejemplos Swagger. Un tipo TypeScript solo no valida un JSON recibido.
+
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNumber, Max, Min } from 'class-validator';
-// MONTOS: apertura es fondo inicial; cierre es el efectivo contado físicamente.
-// CLASE OpenCashDto: contrato de entrada cuyos decoradores comprueban los datos recibidos.
+// apertura es fondo inicial; cierre es el efectivo contado físicamente.
+
 export class OpenCashDto {
-  // CAMPO openingAmount: number; declarado en el contrato. Los decoradores de abajo documentan y validan este valor.
+  // Efectivo con el que se abre la caja.
   @ApiProperty({ example: 200 }) @IsNumber({ maxDecimalPlaces: 2 }) @Min(0) @Max(99999999) openingAmount: number;
 }
-// CLASE CloseCashDto: contrato de entrada cuyos decoradores comprueban los datos recibidos.
+
 export class CloseCashDto {
-  // CAMPO countedAmount: number; declarado en el contrato. Los decoradores de abajo documentan y validan este valor.
+  // Efectivo contado al cerrar la caja.
   @ApiProperty({ example: 395 }) @IsNumber({ maxDecimalPlaces: 2 }) @Min(0) @Max(99999999) countedAmount: number;
 }
 ```
@@ -2138,14 +2138,14 @@ Registra controladores y servicios para que NestJS pueda construir sus dependenc
 ### Código completo para leer junto a la explicación
 
 ```typescript
-// ARCHIVO: Registra controladores y servicios para que NestJS pueda construir sus dependencias.
-// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
+// Registra controladores y servicios para que NestJS pueda construir sus dependencias.
+
 import { Module } from '@nestjs/common';
 import { CashController } from './cash.controller';
 import { CashService } from './cash.service';
-// MÓDULO: registra caja y permite al seed reutilizar las reglas del servicio.
+// registra caja y permite al seed reutilizar las reglas del servicio.
 export { CashService } from './cash.service';
-// CLASE CashModule: agrupa y registra dependencias en NestJS.
+
 @Module({ providers: [CashService], controllers: [CashController] })
 export class CashModule {}
 ```
@@ -2167,28 +2167,28 @@ Abre caja, agrupa pagos POS, calcula efectivo esperado y coordina el cierre con 
 ### Código completo para leer junto a la explicación
 
 ```typescript
-// ARCHIVO: Abre caja, agrupa pagos POS, calcula efectivo esperado y coordina el cierre con ventas concurrentes.
-// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
+// Abre caja, agrupa pagos POS, calcula efectivo esperado y coordina el cierre con ventas concurrentes.
+
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Actor } from '../common/security';
 import { Prisma } from '../generated/prisma/client';
 import { OpenCashDto, CloseCashDto } from './cash.dto';
-// SERVICIO: apertura, conciliación y cierre coordinados con las ventas POS.
-// CLASE CashService: Abre caja, agrupa pagos POS, calcula efectivo esperado y coordina el cierre con ventas concurrentes.
+// apertura, conciliación y cierre junto con las ventas de mostrador.
+
 @Injectable()
 export class CashService {
-  // BLOQUE constructor: Inyecta las dependencias necesarias; NestJS proporciona estas instancias al construir la clase.
+  
   constructor(private readonly prisma: PrismaService) {}
-  // LISTADO: permite elegir caja sin transferir consultas al controlador.
-  // BLOQUE list: Consulta el listado correspondiente, filtrado o limitado según las reglas del servicio.
+  // permite elegir caja sin transferir consultas al controlador.
+  // Consulta los registros que permite este servicio.
   list() { return this.prisma.cashSession.findMany({ orderBy: { id: 'desc' }, take: 100 }); }
-  // BLOQUE open: Crea una sesión con fondo inicial; el índice parcial de PostgreSQL rechaza una segunda caja abierta.
+  // Crea una sesión con fondo inicial; el índice parcial de PostgreSQL rechaza una segunda caja abierta.
   open(dto: OpenCashDto, actor: Actor) {
     // Un índice único parcial en PostgreSQL impide dos cajas abiertas simultáneas.
     return this.prisma.cashSession.create({ data: { ...dto, openedById: actor.id } });
   }
-  // BLOQUE report: Agrupa pagos POS por método; suma solamente CASH al fondo inicial y compara contra el efectivo contado.
+  // Agrupa pagos POS por método; suma solamente CASH al fondo inicial y compara contra el efectivo contado.
   async report(tx: Prisma.TransactionClient, id: number) {
     const session = await tx.cashSession.findUnique({ where: { id } });
     if (!session) throw new NotFoundException('Caja no encontrada');
@@ -2197,12 +2197,12 @@ export class CashService {
     const expected = session.expectedAmount ?? session.openingAmount.plus(cash);
     return { ...session, totalsByMethod: totals, expectedAmount: expected, difference: session.countedAmount?.minus(expected) ?? null };
   }
-  // BLOQUE get: Obtiene el informe de caja con una lectura consistente RepeatableRead.
+  // Obtiene el informe de caja con una lectura consistente RepeatableRead.
   async get(id: number) { return this.prisma.$transaction(tx => this.report(tx, id), { isolationLevel: 'RepeatableRead' }); }
-  // BLOQUE close: Bloquea la caja, rechaza cierre repetido, calcula el saldo esperado y guarda quién/cuándo cerró.
+  // Bloquea la caja, rechaza cierre repetido, calcula el saldo esperado y guarda quién/cuándo cerró.
   async close(id: number, dto: CloseCashDto, actor: Actor) {
     return this.prisma.$transaction(async tx => {
-      // MISMO BLOQUEO QUE CHECKOUT: el corte no puede adelantarse a un cobro en curso.
+      // el corte no puede adelantarse a un cobro en curso.
       await tx.$queryRaw`SELECT id FROM cash_sessions WHERE id = ${id} FOR UPDATE`;
       const session = await tx.cashSession.findUnique({ where: { id } });
       if (!session) throw new NotFoundException();
@@ -2240,8 +2240,8 @@ Recibe solicitudes HTTP, valida parámetros con DTO/Pipes y delega reglas en ser
 ### Código completo para leer junto a la explicación
 
 ```typescript
-// ARCHIVO: Recibe solicitudes HTTP, valida parámetros con DTO/Pipes y delega reglas en servicios.
-// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
+// Recibe solicitudes HTTP, valida parámetros con DTO/Pipes y delega reglas en servicios.
+
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Actor, CurrentUser, Public, Roles } from '../common/security';
@@ -2249,49 +2249,49 @@ import { CategoriesService } from './categories.service';
 import { CatalogService } from './catalog.service';
 import { CatalogQuery, CategoryDto, ProductDto, StockDto, UpdateProductDto } from './catalog.dto';
 
-// CONTROLLERS: declaran rutas, permisos y DTOs; delegan reglas en el servicio.
-// CLASE ProductsController: Recibe solicitudes HTTP, valida parámetros con DTO/Pipes y delega reglas en servicios.
+// declaran rutas, permisos y DTOs; delegan reglas en el servicio.
+
 @ApiTags('Catálogo') @Controller('products')
 export class ProductsController {
-  // BLOQUE constructor: Inyecta las dependencias necesarias; NestJS proporciona estas instancias al construir la clase.
+  
   constructor(private readonly service: CatalogService) {}
-  // BLOQUE list: Recibe datos de la ruta y delega list al servicio; los decoradores definen HTTP, documentación y permisos.
+  // Pasa los datos de esta ruta al método list del servicio.
   @Public() @Get() @ApiOperation({ summary: 'Catálogo público paginado, sin costos internos' })
   list(@Query() q: CatalogQuery) { return this.service.list(q); }
-  // BLOQUE internal: Recibe datos de la ruta y delega list al servicio; los decoradores definen HTTP, documentación y permisos.
+  // Pasa los datos de esta ruta al método list del servicio.
   @Get('internal') @Roles('ADMIN') @ApiBearerAuth() @ApiOperation({ summary: 'Catálogo administrativo con costos y productos inactivos' })
   internal(@Query() q: CatalogQuery) { return this.service.list(q, true); }
-  // BLOQUE get: Recibe datos de la ruta y delega get al servicio; los decoradores definen HTTP, documentación y permisos.
+  // Pasa los datos de esta ruta al método get del servicio.
   @Public() @Get(':id') @ApiOperation({ summary: 'Consultar producto disponible en catálogo' })
   get(@Param('id', ParseIntPipe) id: number) { return this.service.get(id); }
-  // BLOQUE create: Recibe datos de la ruta y delega create al servicio; los decoradores definen HTTP, documentación y permisos.
+  // Pasa los datos de esta ruta al método create del servicio.
   @Post() @Roles('ADMIN') @ApiBearerAuth() @ApiOperation({ summary: 'Crear repuesto con stock inicial cero' })
   create(@Body() dto: ProductDto) { return this.service.create(dto); }
-  // BLOQUE update: Recibe datos de la ruta y delega update al servicio; los decoradores definen HTTP, documentación y permisos.
+  // Pasa los datos de esta ruta al método update del servicio.
   @Patch(':id') @Roles('ADMIN') @ApiBearerAuth() @ApiOperation({ summary: 'Editar repuesto; no modifica ventas anteriores' })
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateProductDto) { return this.service.update(id, dto); }
-  // BLOQUE remove: Recibe datos de la ruta y delega update al servicio; los decoradores definen HTTP, documentación y permisos.
+  // Pasa los datos de esta ruta al método update del servicio.
   @Delete(':id') @Roles('ADMIN') @ApiBearerAuth() @ApiOperation({ summary: 'Retirar del catálogo preservando su historial' })
   remove(@Param('id', ParseIntPipe) id: number) { return this.service.update(id, { active: false }); }
-  // BLOQUE stock: Recibe datos de la ruta y delega adjust al servicio; los decoradores definen HTTP, documentación y permisos.
+  // Pasa los datos de esta ruta al método adjust del servicio.
   @Post(':id/stock') @Roles('ADMIN') @ApiBearerAuth() @ApiOperation({ summary: 'Ajustar inventario con motivo y trazabilidad' })
   stock(@Param('id', ParseIntPipe) id: number, @Body() dto: StockDto, @CurrentUser() actor: Actor) { return this.service.adjust(id, dto, actor.id); }
 }
-// CLASE CategoriesController: Recibe solicitudes HTTP, valida parámetros con DTO/Pipes y delega reglas en servicios.
+
 @ApiTags('Categorías') @Controller('categories')
 export class CategoriesController {
-  // BLOQUE constructor: Inyecta las dependencias necesarias; NestJS proporciona estas instancias al construir la clase.
+  
   constructor(private readonly service: CategoriesService) {}
-  // BLOQUE list: Recibe datos de la ruta y delega list al servicio; los decoradores definen HTTP, documentación y permisos.
+  // Pasa los datos de esta ruta al método list del servicio.
   @Public() @Get() @ApiOperation({ summary: 'Listar categorías activas' })
   list() { return this.service.list(); }
-  // BLOQUE create: Recibe datos de la ruta y delega create al servicio; los decoradores definen HTTP, documentación y permisos.
+  // Pasa los datos de esta ruta al método create del servicio.
   @Post() @Roles('ADMIN') @ApiBearerAuth() @ApiOperation({ summary: 'Crear categoría' })
   create(@Body() dto: CategoryDto) { return this.service.create(dto); }
-  // BLOQUE update: Recibe datos de la ruta y delega update al servicio; los decoradores definen HTTP, documentación y permisos.
+  // Pasa los datos de esta ruta al método update del servicio.
   @Patch(':id') @Roles('ADMIN') @ApiBearerAuth() @ApiOperation({ summary: 'Renombrar categoría' })
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: CategoryDto) { return this.service.update(id, dto); }
-  // BLOQUE remove: Recibe datos de la ruta y delega remove al servicio; los decoradores definen HTTP, documentación y permisos.
+  // Pasa los datos de esta ruta al método remove del servicio.
   @Delete(':id') @Roles('ADMIN') @ApiBearerAuth() @ApiOperation({ summary: 'Desactivar categoría y ocultarla del catálogo público' })
   remove(@Param('id', ParseIntPipe) id: number) { return this.service.remove(id); }
 }
@@ -2324,50 +2324,50 @@ Declara contratos de entrada, validadores y ejemplos Swagger. Un tipo TypeScript
 ### Código completo para leer junto a la explicación
 
 ```typescript
-// ARCHIVO: Declara contratos de entrada, validadores y ejemplos Swagger. Un tipo TypeScript solo no valida un JSON recibido.
-// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
+// Declara contratos de entrada, validadores y ejemplos Swagger. Un tipo TypeScript solo no valida un JSON recibido.
+
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { IsBoolean, IsInt, IsNumber, IsOptional, IsString, Max, MaxLength, Min, MinLength, NotEquals } from 'class-validator';
 import { Type } from 'class-transformer';
 import { PageDto } from '../common/dto';
 // DTOs: los precios tienen dos decimales y las unidades son enteras.
-// CLASE CategoryDto: contrato de entrada cuyos decoradores comprueban los datos recibidos.
+
 export class CategoryDto {
-  // CAMPO name: string; declarado en el contrato. Los decoradores de abajo documentan y validan este valor.
+  // Nombre del usuario o del registro.
   @ApiProperty({ example: 'Frenos' }) @IsString() @MinLength(2) @MaxLength(100) name: string;
 }
-// CLASE ProductDto: contrato de entrada cuyos decoradores comprueban los datos recibidos.
+
 export class ProductDto {
-  // CAMPO categoryId: number; declarado en el contrato. Los decoradores de abajo documentan y validan este valor.
+  // Categoría a la que pertenece el repuesto.
   @ApiProperty({ example: 1 }) @IsInt() @Min(1) categoryId: number;
-  // CAMPO sku: string; declarado en el contrato. Los decoradores de abajo documentan y validan este valor.
+  // Código único del repuesto.
   @ApiProperty({ example: 'FRE-001' }) @IsString() @MinLength(1) @MaxLength(60) sku: string;
-  // CAMPO name: string; declarado en el contrato. Los decoradores de abajo documentan y validan este valor.
+  // Nombre del usuario o del registro.
   @ApiProperty({ example: 'Pastillas de freno delanteras' }) @IsString() @MinLength(2) @MaxLength(150) name: string;
-  // CAMPO description: string; opcional. Los decoradores de abajo documentan y validan este valor.
+  // Descripción opcional del repuesto.
   @ApiPropertyOptional({ example: 'Juego de pastillas; verificar compatibilidad del vehículo' }) @IsOptional() @IsString() @MaxLength(2000) description?: string;
-  // CAMPO acquisitionCost: number; declarado en el contrato. Los decoradores de abajo documentan y validan este valor.
+  // Costo de compra; solo debe verlo el administrador.
   @ApiProperty({ example: 125 }) @IsNumber({ maxDecimalPlaces: 2 }) @Min(0) @Max(99999999) acquisitionCost: number;
-  // CAMPO salePrice: number; declarado en el contrato. Los decoradores de abajo documentan y validan este valor.
+  // Precio de venta usado para calcular el total.
   @ApiProperty({ example: 195 }) @IsNumber({ maxDecimalPlaces: 2 }) @Min(0.01) @Max(99999999) salePrice: number;
 }
-// CLASE UpdateProductDto: contrato de entrada cuyos decoradores comprueban los datos recibidos.
+
 export class UpdateProductDto extends PartialType(ProductDto) {
-  // CAMPO active: boolean; opcional. Los decoradores de abajo documentan y validan este valor.
+  // Indica si la cuenta o el registro sigue disponible.
   @ApiPropertyOptional() @IsOptional() @IsBoolean() active?: boolean;
 }
-// CLASE StockDto: contrato de entrada cuyos decoradores comprueban los datos recibidos.
+
 export class StockDto {
-  // CAMPO delta: number; declarado en el contrato. Los decoradores de abajo documentan y validan este valor.
+  // Un número positivo agrega stock y uno negativo lo retira.
   @ApiProperty({ example: 10, description: 'Positivo agrega; negativo retira existencias' }) @IsInt() @Min(-1000000) @Max(1000000) @NotEquals(0) delta: number;
-  // CAMPO reason: string; declarado en el contrato. Los decoradores de abajo documentan y validan este valor.
+  // Motivo del ajuste de inventario.
   @ApiProperty({ example: 'Ingreso por compra a proveedor' }) @IsString() @MinLength(5) @MaxLength(500) reason: string;
 }
-// CLASE CatalogQuery: contrato de entrada cuyos decoradores comprueban los datos recibidos.
+
 export class CatalogQuery extends PageDto {
-  // CAMPO categoryId: number; opcional. Los decoradores de abajo documentan y validan este valor.
+  // Categoría a la que pertenece el repuesto.
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(1) categoryId?: number;
-  // CAMPO search: string; opcional. Los decoradores de abajo documentan y validan este valor.
+  // Texto para buscar por nombre o código.
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100) search?: string;
 }
 ```
@@ -2383,14 +2383,14 @@ Registra controladores y servicios para que NestJS pueda construir sus dependenc
 ### Código completo para leer junto a la explicación
 
 ```typescript
-// ARCHIVO: Registra controladores y servicios para que NestJS pueda construir sus dependencias.
-// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
+// Registra controladores y servicios para que NestJS pueda construir sus dependencias.
+
 import { Module } from '@nestjs/common';
 import { CategoriesService } from './categories.service';
 import { CatalogService } from './catalog.service';
 import { ProductsController, CategoriesController } from './catalog.controller';
-// MÓDULO DE CATÁLOGO: agrupa productos y sus categorías.
-// CLASE CatalogModule: agrupa y registra dependencias en NestJS.
+// agrupa productos y sus categorías.
+
 @Module({ providers: [CatalogService, CategoriesService], controllers: [ProductsController, CategoriesController] })
 export class CatalogModule {}
 ```
@@ -2413,21 +2413,21 @@ Busca repuestos, oculta costos públicos, comprueba categorías y ajusta stock c
 ### Código completo para leer junto a la explicación
 
 ```typescript
-// ARCHIVO: Busca repuestos, oculta costos públicos, comprueba categorías y ajusta stock con su movimiento contable.
-// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
+// Busca repuestos, oculta costos públicos, comprueba categorías y ajusta stock con su movimiento contable.
+
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CatalogQuery, ProductDto, StockDto, UpdateProductDto } from './catalog.dto';
 import { Prisma } from '../generated/prisma/client';
 
-// RESPUESTA PÚBLICA: la selección explícita impide filtrar costos internos.
+// la selección explícita evita mostrar costos internos.
 export const publicProduct = { id: true, sku: true, name: true, description: true, salePrice: true, stock: true, active: true, category: { select: { id: true, name: true } } } as const;
-// CLASE CatalogService: Busca repuestos, oculta costos públicos, comprueba categorías y ajusta stock con su movimiento contable.
+
 @Injectable()
 export class CatalogService {
-  // BLOQUE constructor: Inyecta las dependencias necesarias; NestJS proporciona estas instancias al construir la clase.
+  
   constructor(private readonly prisma: PrismaService) {}
-  // BLOQUE list: Aplica filtros y paginación; la versión pública oculta costos y registros inactivos.
+  // Aplica filtros y paginación; la versión pública oculta costos y registros inactivos.
   async list(q: CatalogQuery, internal = false) {
     const where: Prisma.ProductWhereInput = { ...(internal ? {} : { active: true, category: { active: true } }), categoryId: q.categoryId,
       ...(q.search ? { OR: [{ name: { contains: q.search, mode: 'insensitive' } }, { sku: { contains: q.search, mode: 'insensitive' } }] } : {}) };
@@ -2437,28 +2437,28 @@ export class CatalogService {
     ]);
     return { data, total, page: q.page, limit: q.limit };
   }
-  // BLOQUE get: Busca el registro solicitado y responde con los campos permitidos.
+  // Busca el registro solicitado y responde con los campos permitidos.
   async get(id: number) {
     const product = await this.prisma.product.findFirst({ where: { id, active: true, category: { active: true } }, select: publicProduct });
     if (!product) throw new NotFoundException('Producto no encontrado');
     return product;
   }
-  // BLOQUE create: Crea el registro usando el DTO validado y sus comprobaciones de negocio.
+  // Crea el registro usando el DTO validado y sus comprobaciones de negocio.
   async create(dto: ProductDto) {
     await this.category(dto.categoryId);
     return this.prisma.product.create({ data: dto });
   }
-  // BLOQUE update: Aplica cambios permitidos por el DTO; comprueba propiedad o categoría según este servicio.
+  // Aplica cambios permitidos por el DTO; comprueba propiedad o categoría según este servicio.
   async update(id: number, dto: UpdateProductDto) {
     if (dto.categoryId) await this.category(dto.categoryId);
     return this.prisma.product.update({ where: { id }, data: dto });
   }
-  // BLOQUE category: Comprueba que la categoría exista y esté activa antes de asociar un repuesto.
+  // Comprueba que la categoría exista y esté activa antes de asociar un repuesto.
   private async category(id: number) {
     if (!(await this.prisma.category.findFirst({ where: { id, active: true } }))) throw new NotFoundException('Categoría no disponible');
   }
-  // TRANSACCIÓN: el stock y su movimiento de auditoría cambian juntos.
-  // BLOQUE adjust: Actualiza stock de forma condicional y guarda el movimiento de auditoría dentro de la misma transacción.
+  // el stock y su movimiento de auditoría cambian juntos.
+  // Actualiza stock de forma condicional y guarda el movimiento de auditoría dentro de la misma transacción.
   async adjust(id: number, dto: StockDto, actorId: number) {
     return this.prisma.$transaction(async tx => {
       const changed = await tx.product.updateMany({ where: { id, ...(dto.delta < 0 ? { stock: { gte: -dto.delta } } : {}) }, data: { stock: { increment: dto.delta } } });
@@ -2486,24 +2486,24 @@ Gestiona categorías y su desactivación sin eliminar el historial de productos.
 ### Código completo para leer junto a la explicación
 
 ```typescript
-// ARCHIVO: Gestiona categorías y su desactivación sin eliminar el historial de productos.
-// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
+// Gestiona categorías y su desactivación sin eliminar el historial de productos.
+
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CategoryDto } from './catalog.dto';
-// CATEGORÍAS: concentra consultas y bajas lógicas para conservar el historial.
-// CLASE CategoriesService: Gestiona categorías y su desactivación sin eliminar el historial de productos.
+// concentra consultas y bajas lógicas para conservar el historial.
+
 @Injectable()
 export class CategoriesService {
-  // BLOQUE constructor: Inyecta las dependencias necesarias; NestJS proporciona estas instancias al construir la clase.
+  
   constructor(private readonly prisma: PrismaService) {}
-  // BLOQUE list: Aplica filtros y paginación; la versión pública oculta costos y registros inactivos.
+  // Aplica filtros y paginación; la versión pública oculta costos y registros inactivos.
   list() { return this.prisma.category.findMany({ where: { active: true }, orderBy: { name: 'asc' } }); }
-  // BLOQUE create: Crea el registro usando el DTO validado y sus comprobaciones de negocio.
+  // Crea el registro usando el DTO validado y sus comprobaciones de negocio.
   create(dto: CategoryDto) { return this.prisma.category.create({ data: dto }); }
-  // BLOQUE update: Aplica cambios permitidos por el DTO; comprueba propiedad o categoría según este servicio.
+  // Aplica cambios permitidos por el DTO; comprueba propiedad o categoría según este servicio.
   update(id: number, dto: CategoryDto) { return this.prisma.category.update({ where: { id }, data: dto }); }
-  // BLOQUE remove: Desactiva la categoría conservando sus relaciones e historial.
+  // Desactiva la categoría conservando sus relaciones e historial.
   remove(id: number) { return this.prisma.category.update({ where: { id }, data: { active: false } }); }
 }
 ```
@@ -2519,13 +2519,13 @@ Valida page y limit para compartir paginación entre catálogo y pedidos.
 ### Código completo para leer junto a la explicación
 
 ```typescript
-// ARCHIVO: Valida page y limit para compartir paginación entre catálogo y pedidos.
-// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
+// Valida page y limit para compartir paginación entre catálogo y pedidos.
+
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsInt, IsOptional, Max, Min } from 'class-validator';
-// PAGINACIÓN: limita lecturas para evitar descargar todo el catálogo por accidente.
-// CLASE PageDto: Valida page y limit para compartir paginación entre catálogo y pedidos.
+// limita lecturas para evitar descargar todo el catálogo por accidente.
+
 export class PageDto {
   @ApiPropertyOptional({ default: 1, minimum: 1 }) @Type(() => Number) @IsInt() @Min(1)
   page = 1;
@@ -2548,19 +2548,19 @@ Convierte excepciones a respuestas JSON seguras y registra la duración de las s
 ### Código completo para leer junto a la explicación
 
 ```typescript
-// ARCHIVO: Convierte excepciones a respuestas JSON seguras y registra la duración de las solicitudes.
-// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
+// Convierte excepciones a respuestas JSON seguras y registra la duración de las solicitudes.
+
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, Injectable, Logger, NestInterceptor, ExecutionContext, CallHandler } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { finalize } from 'rxjs/operators';
 import { Prisma } from '../generated/prisma/client';
 
-// ERRORES: transforma conflictos conocidos y evita exponer SQL o secretos.
-// CLASE HttpErrorFilter: Convierte excepciones a respuestas JSON seguras y registra la duración de las solicitudes.
+// transforma conflictos conocidos y evita exponer SQL o secretos.
+
 @Catch()
 export class HttpErrorFilter implements ExceptionFilter {
   private readonly logger = new Logger('Errores');
-  // BLOQUE catch: Transforma errores de NestJS/Prisma a statusCode, message, path y timestamp; evita exponer detalles internos al cliente.
+  // Transforma errores de NestJS/Prisma a statusCode, message, path y timestamp; evita exponer detalles internos al cliente.
   catch(error: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const res = ctx.getResponse<Response>();
@@ -2582,12 +2582,12 @@ export class HttpErrorFilter implements ExceptionFilter {
   }
 }
 
-// LOGGING: registra también solicitudes fallidas, sin imprimir cuerpos ni tokens.
-// CLASE HttpLoggingInterceptor: Convierte excepciones a respuestas JSON seguras y registra la duración de las solicitudes.
+// registra también solicitudes fallidas, sin imprimir cuerpos ni tokens.
+
 @Injectable()
 export class HttpLoggingInterceptor implements NestInterceptor {
   private readonly logger = new Logger('HTTP');
-  // BLOQUE intercept: Mide el tiempo de la petición y registra método/ruta al finalizar, incluso cuando ocurre un error.
+  // Mide el tiempo de la petición y registra método/ruta al finalizar, incluso cuando ocurre un error.
   intercept(ctx: ExecutionContext, next: CallHandler) {
     const req = ctx.switchToHttp().getRequest<Request>();
     const start = Date.now();
@@ -2607,11 +2607,11 @@ Describe respuestas OpenAPI: tipos, listas, importes y errores. Documentar una r
 ### Código completo para leer junto a la explicación
 
 ```typescript
-// ARCHIVO: Describe respuestas OpenAPI: tipos, listas, importes y errores. Documentar una respuesta no ejecuta la operación.
-// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
+// Describe respuestas OpenAPI: tipos, listas, importes y errores. Documentar una respuesta no ejecuta la operación.
+
 import { OpenAPIObject } from '@nestjs/swagger';
 import { SchemaObject, ReferenceObject } from '@nestjs/swagger/dist/interfaces/open-api-spec.interface';
-// CONTRATOS: los Decimal se serializan como cadenas; todos los importes están en GTQ.
+// los Decimal se serializan como cadenas; todos los importes están en GTQ.
 const integer: SchemaObject = { type: 'integer', example: 1 };
 const text: SchemaObject = { type: 'string' };
 const nullableText: SchemaObject = { ...text, nullable: true };
@@ -2696,39 +2696,39 @@ Define la identidad Actor, los decoradores propios y los Guards de autenticació
 ### Código completo para leer junto a la explicación
 
 ```typescript
-// ARCHIVO: Define la identidad Actor, los decoradores propios y los Guards de autenticación y autorización.
-// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
+// Define la identidad Actor, los decoradores propios y los Guards de autenticación y autorización.
+
 import { CanActivate, createParamDecorator, ExecutionContext, Injectable, SetMetadata } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
 import { UserRole } from '../generated/prisma/enums';
 
-// CONTRATO: identidad mínima adjuntada al request por Passport.
+// identidad mínima adjuntada al request por Passport.
 export interface Actor { id: number; name: string; email: string; role: UserRole }
 export const Public = () => SetMetadata('public', true);
 export const Roles = (...roles: UserRole[]) => SetMetadata('roles', roles);
 export const CurrentUser = createParamDecorator((_data: unknown, ctx: ExecutionContext): Actor => ctx.switchToHttp().getRequest().user);
 
-// AUTENTICACIÓN POR DEFECTO: únicamente @Public permite omitir el token.
-// CLASE JwtGuard: Define la identidad Actor, los decoradores propios y los Guards de autenticación y autorización.
+// únicamente @Public permite omitir el token.
+
 @Injectable()
 export class JwtGuard extends AuthGuard('jwt') {
-  // BLOQUE constructor: Inyecta las dependencias necesarias; NestJS proporciona estas instancias al construir la clase.
+  
   constructor(private readonly reflector: Reflector) { super(); }
-  // BLOQUE canActivate: Decide si una solicitud puede continuar; lee metadata y, según el Guard, requiere JWT o un rol permitido.
+  // Decide si una solicitud puede continuar; lee metadata y, según el Guard, requiere JWT o un rol permitido.
   canActivate(ctx: ExecutionContext) {
     if (this.reflector.getAllAndOverride<boolean>('public', [ctx.getHandler(), ctx.getClass()])) return true;
     return super.canActivate(ctx);
   }
 }
 
-// AUTORIZACIÓN: lee metadata del método y de la clase, en ese orden.
-// CLASE RolesGuard: Define la identidad Actor, los decoradores propios y los Guards de autenticación y autorización.
+// lee metadata del método y de la clase, en ese orden.
+
 @Injectable()
 export class RolesGuard implements CanActivate {
-  // BLOQUE constructor: Inyecta las dependencias necesarias; NestJS proporciona estas instancias al construir la clase.
+  
   constructor(private readonly reflector: Reflector) {}
-  // BLOQUE canActivate: Decide si una solicitud puede continuar; lee metadata y, según el Guard, requiere JWT o un rol permitido.
+  // Decide si una solicitud puede continuar; lee metadata y, según el Guard, requiere JWT o un rol permitido.
   canActivate(ctx: ExecutionContext): boolean {
     const roles = this.reflector.getAllAndOverride<UserRole[]>('roles', [ctx.getHandler(), ctx.getClass()]);
     if (!roles) return true;
@@ -2749,15 +2749,15 @@ Punto de entrada: crea la aplicación NestJS, aplica la configuración común y 
 ### Código completo para leer junto a la explicación
 
 ```typescript
-// ARCHIVO: Punto de entrada: crea la aplicación NestJS, aplica la configuración común y escucha el puerto del servidor.
-// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
+// Punto de entrada: crea la aplicación NestJS, aplica la configuración común y escucha el puerto del servidor.
+
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
 import { configureApp } from './setup';
-// ARRANQUE: escucha el puerto de Render o el configurado en .env local.
-// BLOQUE bootstrap: Crea AppModule, configura la API y escucha PORT en todas las interfaces del servidor.
+// escucha el puerto de Render o el configurado en .env local.
+// Crea AppModule, configura la API y escucha PORT en todas las interfaces del servidor.
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   configureApp(app);
@@ -2783,42 +2783,42 @@ Envía solicitudes a la pasarela del curso con la clave privada; normaliza barra
 ### Código completo para leer junto a la explicación
 
 ```typescript
-// ARCHIVO: Envía solicitudes a la pasarela del curso con la clave privada; normaliza barras y limita el tiempo de espera.
-// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
+// Envía solicitudes a la pasarela del curso con la clave privada; normaliza barras y limita el tiempo de espera.
+
 import { BadGatewayException, Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-// URL: normaliza únicamente el path, conservando https://.
-// BLOQUE singleSlash: Usa URL y normaliza únicamente pathname; conserva https:// y evita el doble slash del proveedor.
+// normaliza únicamente el path, conservando https://.
+// Usa URL y normaliza únicamente pathname; conserva https:// y evita el doble slash del proveedor.
 export function singleSlash(value: string): string {
   const url = new URL(value);
   url.pathname = url.pathname.replace(/\/{2,}/g, '/');
   return url.toString();
 }
-// CLASE MockPayClient: Envía solicitudes a la pasarela del curso con la clave privada; normaliza barras y limita el tiempo de espera.
+
 @Injectable()
 export class MockPayClient {
-  // BLOQUE constructor: Inyecta las dependencias necesarias; NestJS proporciona estas instancias al construir la clase.
+  
   constructor(private readonly config: ConfigService) {}
-  // BLOQUE request: Construye la URL, agrega Bearer privado, llama fetch con timeout y convierte fallos externos a un error seguro.
+  // Construye la URL, agrega Bearer privado, llama fetch con timeout y convierte fallos externos a un error seguro.
   async request(path: string, body?: unknown): Promise<any> {
     const key = this.config.get<string>('MOCKPAY_SECRET_KEY');
     if (!key) throw new ServiceUnavailableException('Configura MOCKPAY_SECRET_KEY en el backend');
     const base = this.config.get<string>('MOCKPAY_API_URL', 'https://mockpay-backend.onrender.com');
     const url = singleSlash(base.replace(/\/+$/, '') + '/api/v1/' + path.replace(/^\/+/, ''));
     try {
-      // SERVIDOR A SERVIDOR: el secreto no aparece en respuestas ni en logs.
+      // el secreto no aparece en respuestas ni en logs.
       const response = await fetch(url, { method: body ? 'POST' : 'GET', headers: { Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' }, ...(body ? { body: JSON.stringify(body) } : {}), signal: AbortSignal.timeout(15000) });
       if (!response.ok) throw new Error('Respuesta externa inválida');
       return await response.json();
     } catch { throw new BadGatewayException('No se pudo confirmar la respuesta de MockPay; sincroniza antes de reintentar un cobro'); }
   }
-  // BLOQUE create: Crea o recupera un intento sin duplicarlo; llama MockPay fuera de la transacción y guarda su URL normalizada.
+  // Crea o recupera un intento sin duplicarlo; llama MockPay fuera de la transacción y guarda su URL normalizada.
   create(amount: number, metadata: Record<string, string>) { return this.request('payments', { amount, currency: 'GTQ', metadata }); }
-  // BLOQUE get: Busca el registro solicitado y responde con los campos permitidos.
+  // Busca el registro solicitado y responde con los campos permitidos.
   get(id: string) { return this.request('payments/' + encodeURIComponent(id)); }
-  // SANDBOX: solo tarjetas ficticias del curso, normalizadas sin espacios.
-  // BLOQUE processDemo: Envía una tarjeta fija de prueba según el escenario; sus números se envían sin espacios.
+  // solo tarjetas ficticias del curso, normalizadas sin espacios.
+  // Envía una tarjeta fija de prueba según el escenario; sus números se envían sin espacios.
   processDemo(id: string, scenario: 'SUCCESS' | 'INSUFFICIENT_FUNDS' | 'DECLINED') {
     const numbers = { SUCCESS: '4242424242424242', INSUFFICIENT_FUNDS: '4000000000000002', DECLINED: '5555555555554444' };
     return this.request('payments/' + encodeURIComponent(id) + '/process', { cardNumber: numbers[scenario], expiry: '12/30', cvc: '123', cardholderName: 'Cliente Demo', phone: '5555-0101', address: 'Dirección ficticia de prueba', zip: '01001' });
@@ -2849,16 +2849,16 @@ Publica las rutas de intención, consulta, sincronización, simulación local, w
 ### Código completo para leer junto a la explicación
 
 ```typescript
-// ARCHIVO: Publica las rutas de intención, consulta, sincronización, simulación local, webhook y redirecciones.
-// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
+// Publica las rutas de intención, consulta, sincronización, simulación local, webhook y redirecciones.
+
 import { Body, Controller, Get, Param, ParseIntPipe, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiProperty, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Allow, IsIn, IsUUID } from 'class-validator';
 import { Actor, CurrentUser, Public, Roles } from '../common/security';
 import { MockPayService } from './mockpay.service';
 
-// WEBHOOK: aceptar el contrato del proveedor; únicamente el ID inicia una consulta verificada.
-// CLASE WebhookDto: Publica las rutas de intención, consulta, sincronización, simulación local, webhook y redirecciones.
+// aceptar el contrato del proveedor; únicamente el ID inicia una consulta verificada.
+
 class WebhookDto {
   @ApiProperty() @IsUUID() id: string;
   @Allow() event?: string; @Allow() amount?: number; @Allow() currency?: string;
@@ -2871,43 +2871,43 @@ const attemptSchema: any = { type: 'object', properties: {
   createdAt: { type: 'string', format: 'date-time' }, updatedAt: { type: 'string', format: 'date-time' },
   orderStatus: { type: 'string', description: 'Presente al sincronizar' }
 } };
-// ESCENARIOS: el cliente elige una prueba, nunca envía datos de tarjetas reales.
-// CLASE DemoPaymentDto: Publica las rutas de intención, consulta, sincronización, simulación local, webhook y redirecciones.
+// el cliente elige una prueba, nunca envía datos de tarjetas reales.
+
 class DemoPaymentDto {
   @ApiProperty({ enum: ['SUCCESS','INSUFFICIENT_FUNDS','DECLINED'], example: 'SUCCESS' })
   @IsIn(['SUCCESS','INSUFFICIENT_FUNDS','DECLINED']) scenario: 'SUCCESS' | 'INSUFFICIENT_FUNDS' | 'DECLINED';
 }
-// CLASE MockPayOrdersController: Publica las rutas de intención, consulta, sincronización, simulación local, webhook y redirecciones.
+
 @ApiTags('Pasarela MockPay') @ApiBearerAuth() @Roles('ADMIN', 'CUSTOMER') @Controller('orders')
 export class MockPayOrdersController {
-  // BLOQUE constructor: Inyecta las dependencias necesarias; NestJS proporciona estas instancias al construir la clase.
+  
   constructor(private readonly service: MockPayService) {}
-  // BLOQUE create: Recibe datos de la ruta y delega create al servicio; los decoradores definen HTTP, documentación y permisos.
+  // Pasa los datos de esta ruta al método create del servicio.
   @Post(':id/mockpay') @ApiOperation({ summary: 'Crear o recuperar checkout MockPay; cliente dueño o administrador' }) @ApiResponse({ status: 201, schema: attemptSchema })
   create(@Param('id', ParseIntPipe) id: number, @CurrentUser() actor: Actor) { return this.service.create(id, actor); }
-  // BLOQUE latest: Recibe datos de la ruta y delega latest al servicio; los decoradores definen HTTP, documentación y permisos.
+  // Pasa los datos de esta ruta al método latest del servicio.
   @Get(':id/mockpay') @ApiOperation({ summary: 'Consultar último intento y enlace de cobro' }) @ApiResponse({ status: 200, schema: attemptSchema })
   latest(@Param('id', ParseIntPipe) id: number, @CurrentUser() actor: Actor) { return this.service.latest(id, actor); }
-  // BLOQUE sync: Recibe datos de la ruta y delega sync al servicio; los decoradores definen HTTP, documentación y permisos.
+  // Pasa los datos de esta ruta al método sync del servicio.
   @Post(':id/mockpay/sync') @ApiOperation({ summary: 'Consultar resultado verificado; útil en localhost sin webhook público' }) @ApiResponse({ status: 201, schema: attemptSchema })
   sync(@Param('id', ParseIntPipe) id: number, @CurrentUser() actor: Actor) { return this.service.sync(id, actor); }
-  // BLOQUE demo: Recibe datos de la ruta y delega demo al servicio; los decoradores definen HTTP, documentación y permisos.
+  // Pasa los datos de esta ruta al método demo del servicio.
   @Post(':id/mockpay/demo') @ApiOperation({ summary: 'Probar tarjeta ficticia del curso desde Swagger; solo desarrollo/pruebas' }) @ApiResponse({ status: 201, schema: attemptSchema })
   demo(@Param('id', ParseIntPipe) id: number, @Body() dto: DemoPaymentDto, @CurrentUser() actor: Actor) { return this.service.demo(id, dto.scenario, actor); }
 }
-// CLASE MockPayWebhookController: Publica las rutas de intención, consulta, sincronización, simulación local, webhook y redirecciones.
+
 @ApiTags('Pasarela MockPay') @Controller('mockpay')
 export class MockPayWebhookController {
-  // BLOQUE constructor: Inyecta las dependencias necesarias; NestJS proporciona estas instancias al construir la clase.
+  
   constructor(private readonly service: MockPayService) {}
-  // BLOQUE webhook: Recibe datos de la ruta y delega verify al servicio; los decoradores definen HTTP, documentación y permisos.
+  // Pasa los datos de esta ruta al método verify del servicio.
   @Public() @Post('webhook') @ApiOperation({ summary: 'Notificación MockPay: reconsulta proveedor antes de aplicar pago' }) @ApiResponse({ status: 201, schema: attemptSchema })
   webhook(@Body() body: WebhookDto) { return this.service.verify(body.id); }
-  // RETORNO VISUAL: informar cómo consultar; nunca marcar pagado desde un query string.
-  // BLOQUE returned: Recibe datos de la ruta y delega returned al servicio; los decoradores definen HTTP, documentación y permisos.
+  // informar cómo consultar; nunca marcar pagado desde un query string.
+  // Pasa los datos de esta ruta al método returned del servicio.
   @Public() @Get('return') @ApiOperation({ summary: 'Retorno del navegador; no confirma pagos' }) @ApiResponse({ status: 200, schema: { type: 'object', properties: { message: { type: 'string' }, transactionId: { type: 'string' } } } })
   returned(@Query('transaction_id') id: string) { return { message: 'Regresa a Swagger y sincroniza tu pedido para comprobar el pago.', transactionId: id }; }
-  // BLOQUE cancelled: Recibe datos de la ruta y delega cancelled al servicio; los decoradores definen HTTP, documentación y permisos.
+  // Pasa los datos de esta ruta al método cancelled del servicio.
   @Public() @Get('cancel') @ApiOperation({ summary: 'Retorno por cancelación; el pedido conserva su estado' }) @ApiResponse({ status: 200, schema: { type: 'object', properties: { message: { type: 'string' } } } })
   cancelled() { return { message: 'Se cerró el checkout. Consulta el resultado del intento antes de cancelar el pedido.' }; }
 }
@@ -2924,15 +2924,15 @@ Registra controladores y servicios para que NestJS pueda construir sus dependenc
 ### Código completo para leer junto a la explicación
 
 ```typescript
-// ARCHIVO: Registra controladores y servicios para que NestJS pueda construir sus dependencias.
-// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
+// Registra controladores y servicios para que NestJS pueda construir sus dependencias.
+
 import { Module } from '@nestjs/common';
 import { SalesModule } from '../sales/sales.module';
 import { MockPayClient } from './mockpay.client';
 import { MockPayService } from './mockpay.service';
 import { MockPayOrdersController, MockPayWebhookController } from './mockpay.controller';
-// MÓDULO: separa comunicación externa, reglas de cobro y rutas de NestJS.
-// CLASE MockPayModule: agrupa y registra dependencias en NestJS.
+// separa comunicación externa, reglas de cobro y rutas de NestJS.
+
 @Module({ imports: [SalesModule], providers: [MockPayClient, MockPayService], controllers: [MockPayOrdersController, MockPayWebhookController] })
 export class MockPayModule {}
 ```
@@ -2954,8 +2954,8 @@ Correlaciona intentos y pedidos, confirma importe/moneda/metadata y registra un 
 ### Código completo para leer junto a la explicación
 
 ```typescript
-// ARCHIVO: Correlaciona intentos y pedidos, confirma importe/moneda/metadata y registra un pago verificado una sola vez.
-// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
+// Relaciona intentos y pedidos, confirma importe/moneda/metadata y registra un pago verificado una sola vez.
+
 import { BadGatewayException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'node:crypto';
@@ -2966,12 +2966,12 @@ import { Prisma } from '../generated/prisma/client';
 import { MockPayClient, singleSlash } from './mockpay.client';
 
 const active = ['CREATING', 'PENDING', 'UNKNOWN'];
-// CLASE MockPayService: Correlaciona intentos y pedidos, confirma importe/moneda/metadata y registra un pago verificado una sola vez.
+
 @Injectable()
 export class MockPayService {
-  // BLOQUE constructor: Inyecta las dependencias necesarias; NestJS proporciona estas instancias al construir la clase.
+  
   constructor(private readonly db: PrismaService, private readonly sales: SalesService, private readonly client: MockPayClient, private readonly config: ConfigService) {}
-  // BLOQUE create: Crea o recupera un intento sin duplicarlo; llama MockPay fuera de la transacción y guarda su URL normalizada.
+  // Crea o recupera un intento sin duplicarlo; llama MockPay fuera de la transacción y guarda su URL normalizada.
   async create(orderId: number, actor: Actor) {
     await this.sales.get(orderId, actor);
     const attempt = await this.db.$transaction(async tx => {
@@ -3072,27 +3072,27 @@ Conecta Prisma con PostgreSQL mediante adapter-pg y comparte el cliente entre m�
 ### Código completo para leer junto a la explicación
 
 ```typescript
-// ARCHIVO: Conecta Prisma con PostgreSQL mediante adapter-pg y comparte el cliente entre módulos.
-// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
+// Conecta Prisma con PostgreSQL mediante adapter-pg y comparte el cliente entre módulos.
+
 import { Global, Injectable, Module, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../generated/prisma/client';
 
-// CONEXIÓN ÚNICA: todos los módulos reutilizan este cliente y su pool.
-// CLASE PrismaService: Conecta Prisma con PostgreSQL mediante adapter-pg y comparte el cliente entre módulos.
+// todos los módulos reutilizan este cliente y su pool.
+
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
-  // BLOQUE constructor: Inyecta las dependencias necesarias; NestJS proporciona estas instancias al construir la clase.
+  
   constructor(config: ConfigService) {
     super({ adapter: new PrismaPg({ connectionString: config.getOrThrow<string>('DATABASE_URL') }) });
   }
-  // BLOQUE onModuleInit: Abre la conexión al iniciar el módulo de Prisma.
+  // Abre la conexión al iniciar el módulo de Prisma.
   async onModuleInit() { await this.$connect(); }
-  // BLOQUE onModuleDestroy: Cierra la conexión al destruir la aplicación.
+  // Cierra la conexión al destruir la aplicación.
   async onModuleDestroy() { await this.$disconnect(); }
 }
-// CLASE PrismaModule: Conecta Prisma con PostgreSQL mediante adapter-pg y comparte el cliente entre módulos.
+
 @Global()
 @Module({ providers: [PrismaService], exports: [PrismaService] })
 export class PrismaModule {}
@@ -3122,53 +3122,53 @@ Recibe solicitudes HTTP, valida parámetros con DTO/Pipes y delega reglas en ser
 ### Código completo para leer junto a la explicación
 
 ```typescript
-// ARCHIVO: Recibe solicitudes HTTP, valida parámetros con DTO/Pipes y delega reglas en servicios.
-// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
+// Recibe solicitudes HTTP, valida parámetros con DTO/Pipes y delega reglas en servicios.
+
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Put, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Actor, CurrentUser, Roles } from '../common/security';
 import { CartDto, CartItemDto, CheckoutDto, OrdersQuery, OrderStatusDto, PaymentDto } from './sales.dto';
 import { SalesService } from './sales.service';
-// CARRITOS: un mismo flujo prepara ventas POS, compras WEB y pedidos SOCIAL.
-// CLASE CartsController: Recibe solicitudes HTTP, valida parámetros con DTO/Pipes y delega reglas en servicios.
+// un mismo flujo prepara ventas POS, compras WEB y pedidos SOCIAL.
+
 @ApiTags('Carritos y checkout') @ApiBearerAuth() @Controller('carts')
 export class CartsController {
-  // BLOQUE constructor: Inyecta las dependencias necesarias; NestJS proporciona estas instancias al construir la clase.
+  
   constructor(private readonly service: SalesService) {}
-  // BLOQUE create: Recibe datos de la ruta y delega createCart al servicio; los decoradores definen HTTP, documentación y permisos.
+  // Pasa los datos de esta ruta al método createCart del servicio.
   @Post() @ApiOperation({ summary: 'Abrir carrito según el canal permitido al usuario' })
   create(@Body() dto: CartDto, @CurrentUser() actor: Actor) { return this.service.createCart(dto, actor); }
-  // BLOQUE get: Recibe datos de la ruta y delega cart al servicio; los decoradores definen HTTP, documentación y permisos.
+  // Pasa los datos de esta ruta al método cart del servicio.
   @Get(':id') @ApiOperation({ summary: 'Consultar mi carrito' })
   get(@Param('id', ParseIntPipe) id: number, @CurrentUser() actor: Actor) { return this.service.cart(id, actor); }
-  // BLOQUE item: Recibe datos de la ruta y delega setItem al servicio; los decoradores definen HTTP, documentación y permisos.
+  // Pasa los datos de esta ruta al método setItem del servicio.
   @Put(':id/items') @ApiOperation({ summary: 'Agregar producto o reemplazar su cantidad; no reserva stock' })
   item(@Param('id', ParseIntPipe) id: number, @Body() dto: CartItemDto, @CurrentUser() actor: Actor) { return this.service.setItem(id, dto, actor); }
-  // BLOQUE remove: Recibe datos de la ruta y delega removeItem al servicio; los decoradores definen HTTP, documentación y permisos.
+  // Pasa los datos de esta ruta al método removeItem del servicio.
   @Delete(':id/items/:productId') @ApiOperation({ summary: 'Retirar producto del carrito abierto' })
   remove(@Param('id', ParseIntPipe) id: number, @Param('productId', ParseIntPipe) productId: number, @CurrentUser() actor: Actor) { return this.service.removeItem(id, productId, actor); }
-  // BLOQUE checkout: Recibe datos de la ruta y delega checkout al servicio; los decoradores definen HTTP, documentación y permisos.
+  // Pasa los datos de esta ruta al método checkout del servicio.
   @Post(':id/checkout') @ApiOperation({ summary: 'Confirmar compra transaccional con clave de idempotencia' })
   checkout(@Param('id', ParseIntPipe) id: number, @Body() dto: CheckoutDto, @CurrentUser() actor: Actor) { return this.service.checkout(id, dto, actor); }
 }
-// CLASE OrdersController: Recibe solicitudes HTTP, valida parámetros con DTO/Pipes y delega reglas en servicios.
+
 @ApiTags('Pedidos y logística') @ApiBearerAuth() @Controller('orders')
 export class OrdersController {
-  // BLOQUE constructor: Inyecta las dependencias necesarias; NestJS proporciona estas instancias al construir la clase.
+  
   constructor(private readonly service: SalesService) {}
-  // BLOQUE list: Recibe datos de la ruta y delega list al servicio; los decoradores definen HTTP, documentación y permisos.
+  // Pasa los datos de esta ruta al método list del servicio.
   @Get() @ApiOperation({ summary: 'Historial propio o cola administrativa filtrada por estado/canal/día' })
   list(@Query() q: OrdersQuery, @CurrentUser() actor: Actor) { return this.service.list(q, actor); }
-  // BLOQUE get: Recibe datos de la ruta y delega get al servicio; los decoradores definen HTTP, documentación y permisos.
+  // Pasa los datos de esta ruta al método get del servicio.
   @Get(':id') @ApiOperation({ summary: 'Detalle y comprobante de pedido autorizado' })
   get(@Param('id', ParseIntPipe) id: number, @CurrentUser() actor: Actor) { return this.service.get(id, actor); }
-  // BLOQUE pay: Recibe datos de la ruta y delega pay al servicio; los decoradores definen HTTP, documentación y permisos.
+  // Pasa los datos de esta ruta al método pay del servicio.
   @Post(':id/payment') @Roles('ADMIN') @ApiOperation({ summary: 'Registrar pago completo verificado de un pedido WEB/SOCIAL' })
   pay(@Param('id', ParseIntPipe) id: number, @Body() dto: PaymentDto, @CurrentUser() actor: Actor) { return this.service.pay(id, dto, actor); }
-  // BLOQUE status: Recibe datos de la ruta y delega transition al servicio; los decoradores definen HTTP, documentación y permisos.
+  // Pasa los datos de esta ruta al método transition del servicio.
   @Patch(':id/status') @Roles('ADMIN') @ApiOperation({ summary: 'Avanzar de pagado a en camino y después entregado' })
   status(@Param('id', ParseIntPipe) id: number, @Body() dto: OrderStatusDto) { return this.service.transition(id, dto.status); }
-  // BLOQUE cancel: Recibe datos de la ruta y delega cancel al servicio; los decoradores definen HTTP, documentación y permisos.
+  // Pasa los datos de esta ruta al método cancel del servicio.
   @Post(':id/cancel') @Roles('ADMIN', 'CUSTOMER') @ApiOperation({ summary: 'Cancelar pedido pendiente sin pago y reponer stock una sola vez' })
   cancel(@Param('id', ParseIntPipe) id: number, @CurrentUser() actor: Actor) { return this.service.cancel(id, actor); }
 }
@@ -3207,63 +3207,63 @@ Declara contratos de entrada, validadores y ejemplos Swagger. Un tipo TypeScript
 ### Código completo para leer junto a la explicación
 
 ```typescript
-// ARCHIVO: Declara contratos de entrada, validadores y ejemplos Swagger. Un tipo TypeScript solo no valida un JSON recibido.
-// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
+// Declara contratos de entrada, validadores y ejemplos Swagger. Un tipo TypeScript solo no valida un JSON recibido.
+
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsInt, IsOptional, IsString, Max, MaxLength, Min, MinLength, IsDateString, Matches } from 'class-validator';
 import { SalesChannel, PaymentMethod, OrderStatus } from '../generated/prisma/enums';
 import { PageDto } from '../common/dto';
-// CREACIÓN: el canal determina permisos y si hace falta logística o caja.
-// CLASE CartDto: contrato de entrada cuyos decoradores comprueban los datos recibidos.
+// el canal determina permisos y si hace falta logística o caja.
+
 export class CartDto {
-  // CAMPO channel: SalesChannel; declarado en el contrato. Los decoradores de abajo documentan y validan este valor.
+  // Canal de venta: mostrador, web o redes sociales.
   @ApiProperty({ enum: SalesChannel, example: 'WEB' }) @IsEnum(SalesChannel) channel: SalesChannel;
 }
-// CLASE CartItemDto: contrato de entrada cuyos decoradores comprueban los datos recibidos.
+
 export class CartItemDto {
-  // CAMPO productId: number; declarado en el contrato. Los decoradores de abajo documentan y validan este valor.
+  // Identificador del repuesto.
   @ApiProperty({ example: 1 }) @IsInt() @Min(1) productId: number;
-  // CAMPO quantity: number; declarado en el contrato. Los decoradores de abajo documentan y validan este valor.
+  // Cantidad de unidades que se quieren comprar.
   @ApiProperty({ example: 2 }) @IsInt() @Min(1) @Max(10000) quantity: number;
 }
-// CLASE CheckoutDto: contrato de entrada cuyos decoradores comprueban los datos recibidos.
+
 export class CheckoutDto {
-  // CAMPO idempotencyKey: string; declarado en el contrato. Los decoradores de abajo documentan y validan este valor.
+  // Esta clave permite repetir la confirmación sin crear otra compra.
   @ApiProperty({ example: 'compra-demo-001', description: 'Clave única para reintentos de esta misma confirmación' }) @IsString() @MinLength(8) @MaxLength(100) idempotencyKey: string;
-  // CAMPO cashSessionId: number; opcional. Los decoradores de abajo documentan y validan este valor.
+  // Caja en la que se registra la venta de mostrador.
   @ApiPropertyOptional({ description: 'Obligatorio en POS', example: 1 }) @IsOptional() @IsInt() @Min(1) cashSessionId?: number;
-  // CAMPO paymentMethod: PaymentMethod; opcional. Los decoradores de abajo documentan y validan este valor.
+  // Método de pago usado en la venta POS.
   @ApiPropertyOptional({ enum: PaymentMethod, description: 'Obligatorio en POS' }) @IsOptional() @IsEnum(PaymentMethod) paymentMethod?: PaymentMethod;
-  // CAMPO addressId: number; opcional. Los decoradores de abajo documentan y validan este valor.
+  // Dirección del cliente que se usará para enviar el pedido.
   @ApiPropertyOptional({ description: 'Dirección propia para compra WEB' }) @IsOptional() @IsInt() @Min(1) addressId?: number;
-  // CAMPO recipientName: string; opcional. Los decoradores de abajo documentan y validan este valor.
+  // Nombre de quien recibirá el pedido.
   @ApiPropertyOptional({ description: 'Destinatario del pedido SOCIAL' }) @IsOptional() @IsString() @MinLength(2) @MaxLength(150) recipientName?: string;
-  // CAMPO recipientPhone: string; opcional. Los decoradores de abajo documentan y validan este valor.
+  // Teléfono de quien recibirá el pedido.
   @ApiPropertyOptional() @IsOptional() @IsString() @MinLength(5) @MaxLength(30) recipientPhone?: string;
-  // CAMPO deliveryAddress: string; opcional. Los decoradores de abajo documentan y validan este valor.
+  // Dirección de entrega del pedido.
   @ApiPropertyOptional() @IsOptional() @IsString() @MinLength(5) @MaxLength(500) deliveryAddress?: string;
-  // CAMPO deliveryReference: string; opcional. Los decoradores de abajo documentan y validan este valor.
+  // Referencia para encontrar la dirección de entrega.
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(500) deliveryReference?: string;
 }
-// CLASE PaymentDto: contrato de entrada cuyos decoradores comprueban los datos recibidos.
+
 export class PaymentDto {
-  // CAMPO method: PaymentMethod; declarado en el contrato. Los decoradores de abajo documentan y validan este valor.
+  // Forma de pago: efectivo, tarjeta o transferencia.
   @ApiProperty({ enum: PaymentMethod }) @IsEnum(PaymentMethod) method: PaymentMethod;
-  // CAMPO reference: string; opcional. Los decoradores de abajo documentan y validan este valor.
+  // Referencia opcional para identificar la dirección o el pago.
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(150) reference?: string;
 }
-// CLASE OrderStatusDto: contrato de entrada cuyos decoradores comprueban los datos recibidos.
+
 export class OrderStatusDto {
-  // CAMPO status: 'IN_TRANSIT' | 'DELIVERED'; declarado en el contrato. Los decoradores de abajo documentan y validan este valor.
+  // Estado permitido para esta operación.
   @ApiProperty({ enum: ['IN_TRANSIT', 'DELIVERED'] }) @IsEnum({ IN_TRANSIT: 'IN_TRANSIT', DELIVERED: 'DELIVERED' }) status: 'IN_TRANSIT' | 'DELIVERED';
 }
-// CLASE OrdersQuery: contrato de entrada cuyos decoradores comprueban los datos recibidos.
+
 export class OrdersQuery extends PageDto {
-  // CAMPO channel: SalesChannel; opcional. Los decoradores de abajo documentan y validan este valor.
+  // Canal de venta: mostrador, web o redes sociales.
   @ApiPropertyOptional({ enum: SalesChannel }) @IsOptional() @IsEnum(SalesChannel) channel?: SalesChannel;
-  // CAMPO status: OrderStatus; opcional. Los decoradores de abajo documentan y validan este valor.
+  // Estado permitido para esta operación.
   @ApiPropertyOptional({ enum: OrderStatus }) @IsOptional() @IsEnum(OrderStatus) status?: OrderStatus;
-  // CAMPO date: string; opcional. Los decoradores de abajo documentan y validan este valor.
+  // Día de Guatemala que queremos consultar.
   @ApiPropertyOptional({ example: '2026-09-29', description: 'Día comercial en Guatemala (UTC-6)' }) @IsOptional() @Matches(/^\d{4}-\d{2}-\d{2}$/) @IsDateString() date?: string;
 }
 ```
@@ -3279,13 +3279,13 @@ Registra controladores y servicios para que NestJS pueda construir sus dependenc
 ### Código completo para leer junto a la explicación
 
 ```typescript
-// ARCHIVO: Registra controladores y servicios para que NestJS pueda construir sus dependencias.
-// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
+// Registra controladores y servicios para que NestJS pueda construir sus dependencias.
+
 import { Module } from '@nestjs/common';
 import { SalesService } from './sales.service';
 import { CartsController, OrdersController } from './sales.controller';
-// MÓDULO DE VENTAS: centraliza reglas compartidas por mostrador y web.
-// CLASE SalesModule: agrupa y registra dependencias en NestJS.
+// centraliza reglas compartidas por mostrador y web.
+
 @Module({ providers: [SalesService], controllers: [CartsController, OrdersController], exports: [SalesService] })
 export class SalesModule {}
 ```
@@ -3313,8 +3313,8 @@ Centraliza carritos, checkout, pedidos, pagos administrativos, estados y cancela
 ### Código completo para leer junto a la explicación
 
 ```typescript
-// ARCHIVO: Centraliza carritos, checkout, pedidos, pagos administrativos, estados y cancelación en transacciones.
-// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
+// Centraliza carritos, checkout, pedidos, pagos administrativos, estados y cancelación en transacciones.
+
 import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { PrismaService } from '../prisma/prisma.service';
@@ -3322,17 +3322,17 @@ import { Actor } from '../common/security';
 import { CartDto, CartItemDto, CheckoutDto, OrdersQuery, PaymentDto } from './sales.dto';
 import { Prisma } from '../generated/prisma/client';
 
-// SELECT SEGURO: no devuelve costos de adquisición ni hashes en tickets y carritos.
+// no devuelve costos de adquisición ni hashes en tickets y carritos.
 const cartView = { items: { include: { product: { select: { id: true, name: true, sku: true, salePrice: true, stock: true, active: true } } } } } as const;
 const orderView = { items: { select: { id: true, productId: true, productName: true, quantity: true, unitPrice: true } }, payment: true } as const;
 
-// CLASE SalesService: Centraliza carritos, checkout, pedidos, pagos administrativos, estados y cancelación en transacciones.
+
 @Injectable()
 export class SalesService {
-  // BLOQUE constructor: Inyecta las dependencias necesarias; NestJS proporciona estas instancias al construir la clase.
+  
   constructor(private readonly prisma: PrismaService) {}
-  // PROPIEDAD: ningún usuario modifica el carrito creado por otra persona.
-  // BLOQUE ownCart: Comprueba existencia, dueño y, cuando corresponde, estado OPEN del carrito.
+  // ningún usuario modifica el carrito creado por otra persona.
+  // Comprueba existencia, dueño y, cuando corresponde, estado OPEN del carrito.
   private async ownCart(tx: Prisma.TransactionClient, id: number, actor: Actor, open = false) {
     const cart = await tx.cart.findUnique({ where: { id } });
     if (!cart) throw new NotFoundException('Carrito no encontrado');
@@ -3340,20 +3340,20 @@ export class SalesService {
     if (open && cart.status !== 'OPEN') throw new ConflictException('El carrito ya fue cerrado');
     return cart;
   }
-  // BLOQUE createCart: Restringe el canal por rol y registra el dueño; todavía no reserva inventario.
+  // Restringe el canal por rol y registra el dueño; todavía no reserva inventario.
   createCart(dto: CartDto, actor: Actor) {
     if ((actor.role === 'CUSTOMER' && dto.channel !== 'WEB') || (actor.role === 'CASHIER' && dto.channel !== 'POS') || (actor.role === 'ADMIN' && dto.channel === 'WEB')) throw new ForbiddenException('Canal no permitido para este rol');
     return this.prisma.cart.create({ data: { channel: dto.channel, createdById: actor.id, customerId: actor.role === 'CUSTOMER' ? actor.id : null } });
   }
-  // BLOQUE cart: Comprueba propiedad y devuelve el carrito con productos seleccionados de forma segura.
+  // Comprueba propiedad y devuelve el carrito con productos seleccionados de forma segura.
   async cart(id: number, actor: Actor) {
     await this.ownCart(this.prisma, id, actor);
     return this.prisma.cart.findUniqueOrThrow({ where: { id }, include: cartView });
   }
-  // BLOQUE setItem: Bloquea el carrito en transacción y crea o reemplaza la cantidad mediante upsert.
+  // Bloquea el carrito en transacción y crea o reemplaza la cantidad mediante upsert.
   async setItem(id: number, dto: CartItemDto, actor: Actor) {
     return this.prisma.$transaction(async tx => {
-      // BLOQUEO: serializa edición y checkout del mismo carrito.
+      // evita que se edite el carrito mientras se confirma la compra.
       await tx.$queryRaw`SELECT id FROM carts WHERE id = ${id} FOR UPDATE`;
       await this.ownCart(tx, id, actor, true);
       if (!(await tx.product.findFirst({ where: { id: dto.productId, active: true, category: { active: true } } }))) throw new NotFoundException('Producto no disponible');
@@ -3495,8 +3495,8 @@ Configura prefijo /api, Helmet, CORS, validación global, filtro de errores, reg
 ### Código completo para leer junto a la explicación
 
 ```typescript
-// ARCHIVO: Configura prefijo /api, Helmet, CORS, validación global, filtro de errores, registro HTTP y Swagger.
-// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
+// Configura prefijo /api, Helmet, CORS, validación global, filtro de errores, registro HTTP y Swagger.
+
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -3504,8 +3504,8 @@ import helmet from 'helmet';
 import { documentResponses } from './common/openapi';
 import { HttpErrorFilter, HttpLoggingInterceptor } from './common/http';
 
-// PIPELINE COMÚN: la misma configuración se usa en producción y pruebas.
-// BLOQUE configureApp: Instala el pipeline global de HTTP y genera la documentación Swagger.
+// la misma configuración se usa en producción y pruebas.
+// Instala el pipeline global de HTTP y genera la documentación Swagger.
 export function configureApp(app: INestApplication) {
   const config = app.get(ConfigService);
   app.setGlobalPrefix('api');
@@ -3530,9 +3530,9 @@ Pruebas integradas con NestJS, HTTP y PostgreSQL real en una base separada termi
 ### Código completo para leer junto a la explicación
 
 ```javascript
-// ARCHIVO: Pruebas integradas con NestJS, HTTP y PostgreSQL real en una base separada terminada en _test.
-// ESTUDIO: pasos y bloques explicados en docs/GUIA-CODIGO-COMPLETA.md.
-// PRUEBAS REALES: ejecutan HTTP, Guards, DTOs, Prisma y PostgreSQL juntos.
+// Pruebas integradas con NestJS, HTTP y PostgreSQL real en una base separada terminada en _test.
+
+// ejecutan HTTP, Guards, DTOs, Prisma y PostgreSQL juntos.
 // Solo permiten una base cuyo nombre termine en _test; nunca usan datos de producción.
 require('reflect-metadata');
 require('dotenv').config({ quiet: true });
@@ -3544,7 +3544,7 @@ if (!testUrl || !new URL(testUrl).pathname.endsWith('_test')) throw new Error('D
 process.env.DATABASE_URL = testUrl;
 process.env.NODE_ENV = 'test';
 process.env.JWT_SECRET ||= 'test-secret-only-never-use-in-production-123';
-// ORDEN SEGURO: fijar la conexión de pruebas antes de importar ConfigModule.
+// fijar la conexión de pruebas antes de importar ConfigModule.
 const { NestFactory } = require('@nestjs/core');
 const { AppModule } = require('../dist/app.module');
 const { configureApp } = require('../dist/setup');

@@ -1,9 +1,9 @@
-// ARCHIVO: Registra controladores y servicios para que NestJS pueda construir sus dependencias.
-// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
+// Registra controladores y servicios para que NestJS pueda construir sus dependencias.
+
 import { Module } from '@nestjs/common';
 import { AddressesController } from './addresses.controller';
 import { AddressesService } from './addresses.service';
-// MÓDULO: registra las dependencias de las direcciones personales.
-// CLASE AddressesModule: agrupa y registra dependencias en NestJS.
+// registra las dependencias de las direcciones personales.
+
 @Module({ controllers: [AddressesController], providers: [AddressesService] })
 export class AddressesModule {}

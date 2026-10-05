@@ -1,6 +1,6 @@
-// ARCHIVO: Prepara configuración privada local y credenciales aleatorias sin imprimir secretos.
-// ESTUDIO: pasos y bloques explicados en docs/GUIA-CODIGO-COMPLETA.md.
-// CONFIGURACIÓN LOCAL: genera secretos privados y preserva las contraseñas del seed existente.
+// Prepara configuración privada local y credenciales aleatorias sin imprimir secretos.
+
+// genera secretos privados y preserva las contraseñas del seed existente.
 const fs = require('node:fs');
 const path = require('node:path');
 const { randomBytes } = require('node:crypto');
@@ -17,7 +17,7 @@ for (const line of existing.split(/\r?\n/)) {
   const match = line.match(/^([A-Z_]+)=(.*)$/);
   if (match) current[match[1]] = match[2].replace(/^['"]|['"]$/g, '');
 }
-// PROTECCIÓN: el ayudante local no reemplaza una conexión remota configurada manualmente.
+// el ayudante local no reemplaza una conexión remota configurada manualmente.
 if (current.DATABASE_URL && !['localhost', '127.0.0.1'].includes(new URL(current.DATABASE_URL).hostname)) {
   throw new Error('Tu .env apunta a una base remota. Usa npm start con esa configuración o guarda tu .env antes de preparar el entorno local.');
 }

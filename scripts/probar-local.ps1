@@ -1,6 +1,6 @@
-﻿# ARCHIVO: Prepara la base exclusiva de pruebas y ejecuta e2e sin limpiar la base de demostración.
-# ESTUDIO: pasos y bloques explicados en docs/GUIA-CODIGO-COMPLETA.md.
-# PRUEBAS: usa una base exclusiva terminada en _test y preserva la demostración.
+﻿# Prepara la base exclusiva de pruebas y ejecuta e2e sin limpiar la base de demostración.
+
+# usa una base exclusiva terminada en _test y preserva la demostración.
 param([switch]$EngineFallback)
 $ErrorActionPreference = 'Stop'
 $projectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
@@ -29,7 +29,7 @@ try {
   else { & npm.cmd run db:deploy; if ($LASTEXITCODE -ne 0) { throw 'Falló la migración de pruebas.' } }
   & npm.cmd run build
   if ($LASTEXITCODE -ne 0) { throw 'Falló la compilación.' }
-  # EJECUCIÓN: el mismo proceso evita restricciones de procesos hijos.
+  # el mismo proceso evita restricciones de procesos hijos.
   & node test/e2e.cjs
   if ($LASTEXITCODE -ne 0) { throw 'Las pruebas fallaron.' }
 } finally { $env:DATABASE_URL = $previousDatabase; $env:TEST_DATABASE_URL = $previousTest }

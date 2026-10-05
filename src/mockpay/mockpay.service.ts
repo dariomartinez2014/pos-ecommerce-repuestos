@@ -1,5 +1,5 @@
-// ARCHIVO: Correlaciona intentos y pedidos, confirma importe/moneda/metadata y registra un pago verificado una sola vez.
-// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
+// Relaciona intentos y pedidos, confirma importe/moneda/metadata y registra un pago verificado una sola vez.
+
 import { BadGatewayException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'node:crypto';
@@ -10,12 +10,12 @@ import { Prisma } from '../generated/prisma/client';
 import { MockPayClient, singleSlash } from './mockpay.client';
 
 const active = ['CREATING', 'PENDING', 'UNKNOWN'];
-// CLASE MockPayService: Correlaciona intentos y pedidos, confirma importe/moneda/metadata y registra un pago verificado una sola vez.
+
 @Injectable()
 export class MockPayService {
-  // BLOQUE constructor: Inyecta las dependencias necesarias; NestJS proporciona estas instancias al construir la clase.
+  
   constructor(private readonly db: PrismaService, private readonly sales: SalesService, private readonly client: MockPayClient, private readonly config: ConfigService) {}
-  // BLOQUE create: Crea o recupera un intento sin duplicarlo; llama MockPay fuera de la transacción y guarda su URL normalizada.
+  // Crea o recupera un intento sin duplicarlo; llama MockPay fuera de la transacción y guarda su URL normalizada.
   async create(orderId: number, actor: Actor) {
     await this.sales.get(orderId, actor);
     const attempt = await this.db.$transaction(async tx => {

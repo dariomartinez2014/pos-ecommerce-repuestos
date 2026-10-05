@@ -1,5 +1,5 @@
-// ARCHIVO: Centraliza carritos, checkout, pedidos, pagos administrativos, estados y cancelación en transacciones.
-// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
+// Centraliza carritos, checkout, pedidos, pagos administrativos, estados y cancelación en transacciones.
+
 import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { PrismaService } from '../prisma/prisma.service';
@@ -7,17 +7,17 @@ import { Actor } from '../common/security';
 import { CartDto, CartItemDto, CheckoutDto, OrdersQuery, PaymentDto } from './sales.dto';
 import { Prisma } from '../generated/prisma/client';
 
-// SELECT SEGURO: no devuelve costos de adquisición ni hashes en tickets y carritos.
+// no devuelve costos de adquisición ni hashes en tickets y carritos.
 const cartView = { items: { include: { product: { select: { id: true, name: true, sku: true, salePrice: true, stock: true, active: true } } } } } as const;
 const orderView = { items: { select: { id: true, productId: true, productName: true, quantity: true, unitPrice: true } }, payment: true } as const;
 
-// CLASE SalesService: Centraliza carritos, checkout, pedidos, pagos administrativos, estados y cancelación en transacciones.
+
 @Injectable()
 export class SalesService {
-  // BLOQUE constructor: Inyecta las dependencias necesarias; NestJS proporciona estas instancias al construir la clase.
+  
   constructor(private readonly prisma: PrismaService) {}
-  // PROPIEDAD: ningún usuario modifica el carrito creado por otra persona.
-  // BLOQUE ownCart: Comprueba existencia, dueño y, cuando corresponde, estado OPEN del carrito.
+  // ningún usuario modifica el carrito creado por otra persona.
+  // Comprueba existencia, dueño y, cuando corresponde, estado OPEN del carrito.
   private async ownCart(tx: Prisma.TransactionClient, id: number, actor: Actor, open = false) {
     const cart = await tx.cart.findUnique({ where: { id } });
     if (!cart) throw new NotFoundException('Carrito no encontrado');
@@ -25,20 +25,20 @@ export class SalesService {
     if (open && cart.status !== 'OPEN') throw new ConflictException('El carrito ya fue cerrado');
     return cart;
   }
-  // BLOQUE createCart: Restringe el canal por rol y registra el dueño; todavía no reserva inventario.
+  // Restringe el canal por rol y registra el dueño; todavía no reserva inventario.
   createCart(dto: CartDto, actor: Actor) {
     if ((actor.role === 'CUSTOMER' && dto.channel !== 'WEB') || (actor.role === 'CASHIER' && dto.channel !== 'POS') || (actor.role === 'ADMIN' && dto.channel === 'WEB')) throw new ForbiddenException('Canal no permitido para este rol');
     return this.prisma.cart.create({ data: { channel: dto.channel, createdById: actor.id, customerId: actor.role === 'CUSTOMER' ? actor.id : null } });
   }
-  // BLOQUE cart: Comprueba propiedad y devuelve el carrito con productos seleccionados de forma segura.
+  // Comprueba propiedad y devuelve el carrito con productos seleccionados de forma segura.
   async cart(id: number, actor: Actor) {
     await this.ownCart(this.prisma, id, actor);
     return this.prisma.cart.findUniqueOrThrow({ where: { id }, include: cartView });
   }
-  // BLOQUE setItem: Bloquea el carrito en transacción y crea o reemplaza la cantidad mediante upsert.
+  // Bloquea el carrito en transacción y crea o reemplaza la cantidad mediante upsert.
   async setItem(id: number, dto: CartItemDto, actor: Actor) {
     return this.prisma.$transaction(async tx => {
-      // BLOQUEO: serializa edición y checkout del mismo carrito.
+      // evita que se edite el carrito mientras se confirma la compra.
       await tx.$queryRaw`SELECT id FROM carts WHERE id = ${id} FOR UPDATE`;
       await this.ownCart(tx, id, actor, true);
       if (!(await tx.product.findFirst({ where: { id: dto.productId, active: true, category: { active: true } } }))) throw new NotFoundException('Producto no disponible');

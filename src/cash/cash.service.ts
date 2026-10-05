@@ -1,25 +1,25 @@
-// ARCHIVO: Abre caja, agrupa pagos POS, calcula efectivo esperado y coordina el cierre con ventas concurrentes.
-// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
+// Abre caja, agrupa pagos POS, calcula efectivo esperado y coordina el cierre con ventas concurrentes.
+
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Actor } from '../common/security';
 import { Prisma } from '../generated/prisma/client';
 import { OpenCashDto, CloseCashDto } from './cash.dto';
-// SERVICIO: apertura, conciliación y cierre coordinados con las ventas POS.
-// CLASE CashService: Abre caja, agrupa pagos POS, calcula efectivo esperado y coordina el cierre con ventas concurrentes.
+// apertura, conciliación y cierre junto con las ventas de mostrador.
+
 @Injectable()
 export class CashService {
-  // BLOQUE constructor: Inyecta las dependencias necesarias; NestJS proporciona estas instancias al construir la clase.
+  
   constructor(private readonly prisma: PrismaService) {}
-  // LISTADO: permite elegir caja sin transferir consultas al controlador.
-  // BLOQUE list: Consulta el listado correspondiente, filtrado o limitado según las reglas del servicio.
+  // permite elegir caja sin transferir consultas al controlador.
+  // Consulta los registros que permite este servicio.
   list() { return this.prisma.cashSession.findMany({ orderBy: { id: 'desc' }, take: 100 }); }
-  // BLOQUE open: Crea una sesión con fondo inicial; el índice parcial de PostgreSQL rechaza una segunda caja abierta.
+  // Crea una sesión con fondo inicial; el índice parcial de PostgreSQL rechaza una segunda caja abierta.
   open(dto: OpenCashDto, actor: Actor) {
     // Un índice único parcial en PostgreSQL impide dos cajas abiertas simultáneas.
     return this.prisma.cashSession.create({ data: { ...dto, openedById: actor.id } });
   }
-  // BLOQUE report: Agrupa pagos POS por método; suma solamente CASH al fondo inicial y compara contra el efectivo contado.
+  // Agrupa pagos POS por método; suma solamente CASH al fondo inicial y compara contra el efectivo contado.
   async report(tx: Prisma.TransactionClient, id: number) {
     const session = await tx.cashSession.findUnique({ where: { id } });
     if (!session) throw new NotFoundException('Caja no encontrada');
@@ -28,12 +28,12 @@ export class CashService {
     const expected = session.expectedAmount ?? session.openingAmount.plus(cash);
     return { ...session, totalsByMethod: totals, expectedAmount: expected, difference: session.countedAmount?.minus(expected) ?? null };
   }
-  // BLOQUE get: Obtiene el informe de caja con una lectura consistente RepeatableRead.
+  // Obtiene el informe de caja con una lectura consistente RepeatableRead.
   async get(id: number) { return this.prisma.$transaction(tx => this.report(tx, id), { isolationLevel: 'RepeatableRead' }); }
-  // BLOQUE close: Bloquea la caja, rechaza cierre repetido, calcula el saldo esperado y guarda quién/cuándo cerró.
+  // Bloquea la caja, rechaza cierre repetido, calcula el saldo esperado y guarda quién/cuándo cerró.
   async close(id: number, dto: CloseCashDto, actor: Actor) {
     return this.prisma.$transaction(async tx => {
-      // MISMO BLOQUEO QUE CHECKOUT: el corte no puede adelantarse a un cobro en curso.
+      // el corte no puede adelantarse a un cobro en curso.
       await tx.$queryRaw`SELECT id FROM cash_sessions WHERE id = ${id} FOR UPDATE`;
       const session = await tx.cashSession.findUnique({ where: { id } });
       if (!session) throw new NotFoundException();

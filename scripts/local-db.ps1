@@ -1,6 +1,6 @@
-﻿# ARCHIVO: Inicializa, inicia o detiene únicamente el clúster PostgreSQL propio del proyecto.
-# ESTUDIO: pasos y bloques explicados en docs/GUIA-CODIGO-COMPLETA.md.
-# POSTGRESQL LOCAL: administra únicamente el clúster de este proyecto, en .local/postgres.
+﻿# Inicializa, inicia o detiene únicamente el clúster PostgreSQL propio del proyecto.
+
+# administra únicamente el clúster de este proyecto, en .local/postgres.
 param([ValidateSet('Start', 'Stop')][string]$Action = 'Start', [string]$PgBin = '')
 $ErrorActionPreference = 'Stop'
 $projectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
@@ -15,7 +15,7 @@ if (!(Test-Path -LiteralPath (Join-Path $localDir 'config.json'))) { throw 'Ejec
 $config = Get-Content -LiteralPath (Join-Path $localDir 'config.json') -Raw | ConvertFrom-Json
 $port = [int]$config.port
 if ($Action -eq 'Stop') {
-  # PARADA ORDENADA: pg_ctl recibe el directorio exacto del clúster propio.
+  # pg_ctl recibe el directorio exacto del clúster propio.
   if (Test-Path -LiteralPath (Join-Path $dataDir 'postmaster.pid')) {
     & (Join-Path $PgBin 'pg_ctl.exe') -D $dataDir -m fast -w stop
     if ($LASTEXITCODE -ne 0) { throw 'No se pudo detener PostgreSQL local.' }
@@ -26,7 +26,7 @@ if (!(Test-Path -LiteralPath (Join-Path $dataDir 'PG_VERSION'))) {
   $passwordFile = Join-Path $localDir 'init-password.tmp'
   [IO.File]::WriteAllText($passwordFile, [string]$config.password)
   try {
-    # AUTENTICACIÓN: SCRAM con clave aleatoria y conexión limitada a loopback.
+    # SCRAM con clave aleatoria y conexión limitada a loopback.
     & (Join-Path $PgBin 'initdb.exe') -D $dataDir -U $config.user -A scram-sha-256 --encoding=UTF8 --locale=C "--pwfile=$passwordFile"
     if ($LASTEXITCODE -ne 0) { throw 'No se pudo inicializar el clúster local.' }
   } finally { Remove-Item -LiteralPath $passwordFile -ErrorAction SilentlyContinue }
@@ -42,7 +42,7 @@ try {
   if (!$running) {
     & (Join-Path $PgBin 'pg_isready.exe') -h 127.0.0.1 -p $port *> $null
     if ($LASTEXITCODE -eq 0) { throw "El puerto $port está ocupado por otro clúster. No se modificará esa base." }
-    # SEGUNDO PLANO: ventana oculta; las rutas de log permanecen dentro del proyecto.
+    # ventana oculta; las rutas de log permanecen dentro del proyecto.
     $process = Start-Process -FilePath (Join-Path $PgBin 'postgres.exe') -ArgumentList @('-D', ('"' + $dataDir + '"'), '-p', $port, '-h', '127.0.0.1') -WorkingDirectory $projectRoot -WindowStyle Hidden -RedirectStandardOutput (Join-Path $localDir 'postgres-out.log') -RedirectStandardError (Join-Path $localDir 'postgres-error.log') -PassThru
     for ($attempt = 0; $attempt -lt 30; $attempt++) {
       & (Join-Path $PgBin 'pg_isready.exe') -h 127.0.0.1 -p $port *> $null
@@ -51,7 +51,7 @@ try {
     }
     if ($LASTEXITCODE -ne 0) { throw 'PostgreSQL no inició. Revisa .local/postgres-error.log.' }
   }
-  # COMPROBACIÓN: autenticar verifica que se trata de nuestro clúster.
+  # autenticar verifica que se trata de nuestro clúster.
   $exists = & (Join-Path $PgBin 'psql.exe') -h 127.0.0.1 -p $port -U $config.user -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname = 'pos_ecommerce'"
   if ($LASTEXITCODE -ne 0) { throw 'No se pudo autenticar en PostgreSQL local.' }
   if (($exists -join '').Trim() -ne '1') {

@@ -1,12 +1,12 @@
-// ARCHIVO: Punto de entrada: crea la aplicación NestJS, aplica la configuración común y escucha el puerto del servidor.
-// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
+// Punto de entrada: crea la aplicación NestJS, aplica la configuración común y escucha el puerto del servidor.
+
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
 import { configureApp } from './setup';
-// ARRANQUE: escucha el puerto de Render o el configurado en .env local.
-// BLOQUE bootstrap: Crea AppModule, configura la API y escucha PORT en todas las interfaces del servidor.
+// escucha el puerto de Render o el configurado en .env local.
+// Crea AppModule, configura la API y escucha PORT en todas las interfaces del servidor.
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   configureApp(app);

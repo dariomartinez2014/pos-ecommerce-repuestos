@@ -114,4 +114,4 @@ Consulta docs/MOCKPAY.md para crear intenciones, probar tarjetas ficticias y ver
 - docs/COMENZAR-A-ESTUDIAR.md: orden recomendado.
 - docs/GUIA-CODIGO-COMPLETA.md: explicación por archivo, método y campo, código comentado y diccionario.
 
-Las etiquetas ARCHIVO, CLASE, BLOQUE y CAMPO explican el código en español. La fuente local y los archivos versionados se verifican por contenido al sincronizar GitHub; .env, .local, dependencias y resultados generados son propios del entorno.
+Los comentarios explican el código con frases sencillas en español. La fuente local y los archivos versionados se verifican por contenido al sincronizar GitHub; .env, .local, dependencias y resultados generados son propios del entorno.

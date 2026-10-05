@@ -1,8 +1,8 @@
-// ARCHIVO: Describe respuestas OpenAPI: tipos, listas, importes y errores. Documentar una respuesta no ejecuta la operación.
-// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
+// Describe respuestas OpenAPI: tipos, listas, importes y errores. Documentar una respuesta no ejecuta la operación.
+
 import { OpenAPIObject } from '@nestjs/swagger';
 import { SchemaObject, ReferenceObject } from '@nestjs/swagger/dist/interfaces/open-api-spec.interface';
-// CONTRATOS: los Decimal se serializan como cadenas; todos los importes están en GTQ.
+// los Decimal se serializan como cadenas; todos los importes están en GTQ.
 const integer: SchemaObject = { type: 'integer', example: 1 };
 const text: SchemaObject = { type: 'string' };
 const nullableText: SchemaObject = { ...text, nullable: true };

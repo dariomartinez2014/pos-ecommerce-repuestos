@@ -1,6 +1,6 @@
-// ARCHIVO: Pruebas integradas con NestJS, HTTP y PostgreSQL real en una base separada terminada en _test.
-// ESTUDIO: pasos y bloques explicados en docs/GUIA-CODIGO-COMPLETA.md.
-// PRUEBAS REALES: ejecutan HTTP, Guards, DTOs, Prisma y PostgreSQL juntos.
+// Pruebas integradas con NestJS, HTTP y PostgreSQL real en una base separada terminada en _test.
+
+// ejecutan HTTP, Guards, DTOs, Prisma y PostgreSQL juntos.
 // Solo permiten una base cuyo nombre termine en _test; nunca usan datos de producción.
 require('reflect-metadata');
 require('dotenv').config({ quiet: true });
@@ -12,7 +12,7 @@ if (!testUrl || !new URL(testUrl).pathname.endsWith('_test')) throw new Error('D
 process.env.DATABASE_URL = testUrl;
 process.env.NODE_ENV = 'test';
 process.env.JWT_SECRET ||= 'test-secret-only-never-use-in-production-123';
-// ORDEN SEGURO: fijar la conexión de pruebas antes de importar ConfigModule.
+// fijar la conexión de pruebas antes de importar ConfigModule.
 const { NestFactory } = require('@nestjs/core');
 const { AppModule } = require('../dist/app.module');
 const { configureApp } = require('../dist/setup');

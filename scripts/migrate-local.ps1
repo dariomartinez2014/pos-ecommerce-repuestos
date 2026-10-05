@@ -1,6 +1,6 @@
-﻿# ARCHIVO: Aplica las migraciones usando el motor oficial Prisma cuando un entorno restringido no permite lanzarlo desde Node.
-# ESTUDIO: pasos y bloques explicados en docs/GUIA-CODIGO-COMPLETA.md.
-# ADAPTADOR LOCAL: usa el mismo motor Prisma cuando el entorno restringe spawn de Node.
+﻿# Aplica las migraciones usando el motor oficial Prisma cuando un entorno restringido no permite lanzarlo desde Node.
+
+# usa el mismo motor Prisma cuando el entorno restringe spawn de Node.
 # El flujo habitual sigue siendo npm run db:deploy; este adaptador usa la versión del lockfile.
 param([string]$DatabaseUrl = '')
 $ErrorActionPreference = 'Stop'
@@ -18,8 +18,8 @@ $directories = @(Get-ChildItem -LiteralPath $migrationRoot -Directory | Sort-Obj
 $list = @{ baseDir=$migrationRoot; lockfile=@{ path='migration_lock.toml'; content=[IO.File]::ReadAllText((Join-Path $migrationRoot 'migration_lock.toml')) }; migrationDirectories=$directories; shadowDbInitScript='' }
 $rpc = @{ id=1; jsonrpc='2.0'; method='applyMigrations'; params=@{ migrationsList=$list; filters=@{ externalTables=@(); externalEnums=@() } } } | ConvertTo-Json -Depth 15 -Compress
 $source = @{url=$DatabaseUrl} | ConvertTo-Json -Compress
-# HISTORIAL: el motor ejecuta SQL y registra checksums en _prisma_migrations.
-# COMUNICACIÓN: mantener stdin abierto hasta la respuesta evita cortar una migración en curso.
+# el motor ejecuta SQL y registra checksums en _prisma_migrations.
+# mantener stdin abierto hasta la respuesta evita cortar una migración en curso.
 $engineInfo = [Diagnostics.ProcessStartInfo]::new()
 $engineInfo.FileName = Join-Path $projectRoot 'node_modules/@prisma/engines/schema-engine-windows.exe'
 $engineInfo.Arguments = '--datamodels "' + (Join-Path $projectRoot 'prisma/schema.prisma') + '" --datasource "' + $source.Replace('"', '\"') + '"'

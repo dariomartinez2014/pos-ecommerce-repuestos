@@ -1,5 +1,5 @@
-// ARCHIVO: Configura prefijo /api, Helmet, CORS, validación global, filtro de errores, registro HTTP y Swagger.
-// ESTUDIO: consulta docs/GUIA-CODIGO-COMPLETA.md para recorrer este archivo.
+// Configura prefijo /api, Helmet, CORS, validación global, filtro de errores, registro HTTP y Swagger.
+
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -7,8 +7,8 @@ import helmet from 'helmet';
 import { documentResponses } from './common/openapi';
 import { HttpErrorFilter, HttpLoggingInterceptor } from './common/http';
 
-// PIPELINE COMÚN: la misma configuración se usa en producción y pruebas.
-// BLOQUE configureApp: Instala el pipeline global de HTTP y genera la documentación Swagger.
+// la misma configuración se usa en producción y pruebas.
+// Instala el pipeline global de HTTP y genera la documentación Swagger.
 export function configureApp(app: INestApplication) {
   const config = app.get(ConfigService);
   app.setGlobalPrefix('api');
