@@ -14,7 +14,7 @@ const object = (properties: Record<string, SchemaObject | ReferenceObject>, requ
 const enumString = (...values: string[]): SchemaObject => ({ type: 'string', enum: values });
 const page = (name: string): SchemaObject => object({ data: array(name), total: integer, page: integer, limit: { type: 'integer', example: 20 } });
 const cashProperties = { id: integer, openedById: integer, closedById: { ...integer, nullable: true }, openingAmount: money, countedAmount: { ...money, nullable: true }, expectedAmount: { ...money, nullable: true }, openedAt: date, closedAt: { ...date, nullable: true } };
-const productProperties = { id: integer, sku: { ...text, example: 'FRE-001' }, name: { ...text, example: 'Pastillas de freno delanteras' }, description: nullableText, salePrice: money, stock: integer, active: { type: 'boolean' } as SchemaObject, category: object({ id: integer, name: text }) };
+const productProperties = { id: integer, sku: { ...text, example: 'FRE-001' }, name: { ...text, example: 'Pastillas de freno delanteras' }, description: nullableText, salePrice: money, stock: integer, active: { type: 'boolean' } as SchemaObject, category: object({ id: integer, name: text }), images: { type: 'array', items: object({ id: integer }) } as SchemaObject };
 // DOCUMENTACIÓN: cada ruta declara su respuesta real, no altera el comportamiento de la API.
 // BLOQUE documentResponses: Agrega schemas, respuestas y errores a las operaciones Swagger; no modifica el comportamiento del servidor.
 export function documentResponses(doc: OpenAPIObject) {
@@ -51,6 +51,27 @@ export function documentResponses(doc: OpenAPIObject) {
     ['get', '/api/orders', 'OrdersPage'], ['get', '/api/orders/{id}', 'Order'], ['post', '/api/orders/{id}/payment', 'Order'], ['patch', '/api/orders/{id}/status', 'Order'], ['post', '/api/orders/{id}/cancel', 'Order'],
     ['get', '/api/cash-sessions', 'CashSession', true], ['post', '/api/cash-sessions', 'CashSession'], ['get', '/api/cash-sessions/{id}', 'CashReport'], ['post', '/api/cash-sessions/{id}/close', 'CashReport'],
   ];
+  // Documenta la variante multipart y la respuesta binaria de las fotos.
+  const crearProducto = doc.paths['/api/products']?.post;
+  if (crearProducto) crearProducto.requestBody = {
+    required: true,
+    content: {
+      'application/json': { schema: ref('ProductDto') },
+      'multipart/form-data': { schema: { allOf: [ref('ProductDto'), { type: 'object', properties: {
+        imagenes: { type: 'array', maxItems: 5, items: { type: 'string', format: 'binary' } },
+      } }] } },
+    },
+  };
+  const descargarImagen = doc.paths['/api/products/{id}/images/{imageId}']?.get;
+  if (descargarImagen) {
+    descargarImagen.responses['200'] = {
+      description: 'Imagen del producto',
+      content: Object.fromEntries(['image/jpeg', 'image/png', 'image/webp'].map(tipo => [tipo, { schema: { type: 'string', format: 'binary' } }])),
+    };
+    for (const code of ['400', '404', '429', '500']) descargarImagen.responses[code] = {
+      description: 'Error al obtener la imagen', content: { 'application/json': { schema: ref('ApiError') } },
+    };
+  }
   // RUTAS DE PASARELA: preservan su respuesta específica y comparten los errores normalizados.
   for (const [path, item] of Object.entries(doc.paths)) for (const method of ['get', 'post'] as const) {
     const operation = item[method];

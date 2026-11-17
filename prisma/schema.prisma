@@ -150,8 +150,20 @@ model Product {
   orderItemsByProduct OrderItem[] @relation("OrderItem_product")
   // Colección de registros relacionados; no es una columna que guarde toda la lista.
   inventoryMovementsByProduct InventoryMovement[] @relation("InventoryMovement_product")
+  // Las fotos se guardan junto al producto y sobreviven a un redeploy.
+  images ProductImage[]
   @@index([categoryId])
   @@map("products")
+}
+
+model ProductImage {
+  id Int @id @default(autoincrement())
+  productId Int @map("product_id")
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  contentType String @map("content_type") @db.VarChar(32)
+  bytes Bytes
+  @@index([productId])
+  @@map("product_images")
 }
 
 // relaciones y datos del negocio.

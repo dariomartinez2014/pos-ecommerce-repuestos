@@ -1,12 +1,24 @@
 // Busca repuestos, oculta costos públicos, comprueba categorías y ajusta stock con su movimiento contable.
 
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CatalogQuery, ProductDto, StockDto, UpdateProductDto } from './catalog.dto';
 import { Prisma } from '../generated/prisma/client';
 
 // la selección explícita evita mostrar costos internos.
-export const publicProduct = { id: true, sku: true, name: true, description: true, salePrice: true, stock: true, active: true, category: { select: { id: true, name: true } } } as const;
+export const publicProduct = {
+  id: true, sku: true, name: true, description: true, salePrice: true, stock: true, active: true,
+  category: { select: { id: true, name: true } },
+  // El catálogo solo lista identificadores. Cada imagen se descarga por separado.
+  images: { select: { id: true }, orderBy: { id: 'asc' } },
+} as const;
+
+function tipoDeImagen(bytes: Buffer) {
+  if (bytes.subarray(0, 8).equals(Buffer.from('89504e470d0a1a0a', 'hex'))) return 'image/png';
+  if (bytes.subarray(0, 3).equals(Buffer.from('ffd8ff', 'hex'))) return 'image/jpeg';
+  if (bytes.length >= 16 && bytes.toString('ascii', 0, 4) === 'RIFF' && bytes.toString('ascii', 8, 12) === 'WEBP') return 'image/webp';
+  throw new BadRequestException('Las imágenes deben ser JPG, PNG o WebP.');
+}
 
 @Injectable()
 export class CatalogService {
@@ -28,10 +40,20 @@ export class CatalogService {
     if (!product) throw new NotFoundException('Producto no encontrado');
     return product;
   }
-  // Crea el registro usando el DTO validado y sus comprobaciones de negocio.
-  async create(dto: ProductDto) {
+  // La imagen debe pertenecer a un producto que siga visible en la tienda.
+  async image(productId: number, id: number) {
+    const foto = await this.prisma.productImage.findFirst({
+      where: { id, productId, product: { active: true, category: { active: true } } },
+      select: { bytes: true, contentType: true },
+    });
+    if (!foto) throw new NotFoundException('Imagen no encontrada');
+    return foto;
+  }
+  async create(dto: ProductDto, fotos: { buffer: Buffer }[]) {
     await this.category(dto.categoryId);
-    return this.prisma.product.create({ data: dto });
+    // Revisa los bytes antes de guardar el producto y sus fotos en una sola operación.
+    const images = fotos.map(({ buffer }) => ({ contentType: tipoDeImagen(buffer), bytes: Uint8Array.from(buffer) }));
+    return this.prisma.product.create({ data: { ...dto, images: { create: images } } });
   }
   // Aplica cambios permitidos por el DTO; comprueba propiedad o categoría según este servicio.
   async update(id: number, dto: UpdateProductDto) {

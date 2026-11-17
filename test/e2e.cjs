@@ -30,7 +30,9 @@ test('POS y e-commerce: reglas completas contra PostgreSQL', async t => {
     const password = 'PruebaSegura123!';
     const admin = await db.user.create({ data: { name: 'Admin Test', email: 'admin@test.local', passwordHash: await hash(password, 10), role: 'ADMIN' } });
     async function req(method, path, body, token, expected) {
-      const res = await fetch(base + '/api' + path, { method, headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: 'Bearer ' + token } : {}) }, ...(body !== undefined ? { body: JSON.stringify(body) } : {}) });
+      const multipart = body instanceof FormData;
+      const headers = { ...(!multipart ? { 'Content-Type': 'application/json' } : {}), ...(token ? { Authorization: 'Bearer ' + token } : {}) };
+      const res = await fetch(base + '/api' + path, { method, headers, body: multipart ? body : JSON.stringify(body) });
       const json = await res.json();
       if (expected) assert.equal(res.status, expected, `${method} ${path}: ${JSON.stringify(json)}`);
       return { status: res.status, body: json };
@@ -224,10 +226,46 @@ test('POS y e-commerce: reglas completas contra PostgreSQL', async t => {
         assert.equal(await db.gatewayAttempt.count({ where: { orderId: uncertain.id } }), 1);
       } finally { gateway.create = originalCreate; gateway.get = originalGet; gateway.processDemo = originalDemo; }
     });
+    await t.test('Fotos de producto: carga múltiple, descargas públicas y validación antes de guardar', async () => {
+      const foto = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j7uoAAAAASUVORK5CYII=', 'base64');
+      const formulario = new FormData();
+      for (const [campo, valor] of Object.entries({ categoryId: category.id, sku: 'TEST-FOTOS', name: 'Repuesto con fotos', salePrice: 25, acquisitionCost: 12 }))
+        formulario.append(campo, String(valor));
+      for (const nombre of ['frente.png', 'lado.png'])
+        formulario.append('imagenes', new Blob([foto], { type: 'image/png' }), nombre);
+      await req('POST', '/products', formulario, cashier, 403);
+      const { body: creado } = await req('POST', '/products', formulario, a, 201);
+
+      // El catálogo responde por SKU y solo devuelve los IDs de las fotos.
+      const { body: lista } = await req('GET', '/products?search=test-fotos', undefined, null, 200);
+      assert.equal(lista.total, 1);
+      const [publicado] = lista.data;
+      assert.equal(publicado.id, creado.id);
+      assert.equal(publicado.images.length, 2);
+      assert.equal(Object.hasOwn(publicado, 'acquisitionCost'), false);
+      for (const imagen of publicado.images) {
+        assert.deepEqual(Object.keys(imagen), ['id']);
+        const res = await fetch(base + '/api/products/' + creado.id + '/images/' + imagen.id);
+        assert.equal(res.status, 200);
+        assert.equal(res.headers.get('content-type'), 'image/png');
+        assert.equal(res.headers.get('cross-origin-resource-policy'), 'cross-origin');
+        assert.deepEqual(Buffer.from(await res.arrayBuffer()), foto);
+        await req('GET', '/products/' + product.id + '/images/' + imagen.id, undefined, null, 404);
+      }
+
+      formulario.set('sku', 'TEST-FOTO-INVALIDA');
+      formulario.set('imagenes', new Blob(['texto'], { type: 'image/png' }), 'invalida.png');
+      await req('POST', '/products', formulario, a, 400);
+      const resultado = await req('GET', '/products?search=TEST-FOTO-INVALIDA', undefined, null, 200);
+      assert.equal(resultado.body.total, 0);
+
+      await req('DELETE', '/products/' + creado.id, undefined, a, 200);
+      await req('GET', '/products/' + creado.id + '/images/' + publicado.images[0].id, undefined, null, 404);
+    });
     await t.test('Stock coincide con movimientos y Swagger documenta rutas', async () => {
       for (const p of await db.product.findMany()) {
         const sum = await db.inventoryMovement.aggregate({ where: { productId: p.id }, _sum: { quantityDelta: true } });
-        assert.equal(p.stock, sum._sum.quantityDelta);
+        assert.equal(p.stock, sum._sum.quantityDelta ?? 0);
       }
       const doc = await (await fetch(base + '/api/docs-json')).json();
       assert.ok(doc.paths['/api/carts/{id}/checkout']);
@@ -237,7 +275,7 @@ test('POS y e-commerce: reglas completas contra PostgreSQL', async t => {
       for (const item of Object.values(doc.paths)) for (const [method, operation] of Object.entries(item)) {
         if (!['get', 'post', 'put', 'patch', 'delete'].includes(method)) continue;
         const success = operation.responses['200'] ?? operation.responses['201'];
-        assert.ok(success?.content?.['application/json']?.schema);
+        assert.ok(Object.values(success?.content ?? {}).some(tipo => tipo.schema));
         assert.ok(operation.responses['400'].content['application/json'].schema);
       }
       assert.equal(doc.components.schemas.PublicProduct.properties.salePrice.type, 'string');
