@@ -11,6 +11,7 @@ export const publicProduct = {
   category: { select: { id: true, name: true } },
   // El catálogo solo lista identificadores. Cada imagen se descarga por separado.
   referenceImageSku: true,
+  primaryImageId: true,
   images: { select: { id: true }, orderBy: { id: 'asc' } },
 } as const;
 
@@ -60,29 +61,48 @@ export class CatalogService {
     return this.prisma.product.create({ data: { ...dto, images: { create: prepararFotos(fotos) } } });
   }
   async update(id: number, dto: UpdateProductDto, fotos: { buffer: Buffer }[] = []) {
-    const { reemplazarImagenes, ...datos } = dto;
+    const { reemplazarImagenes, quitarImagenes, imagenPrincipal, ...datos } = dto;
     const nuevas = prepararFotos(fotos);
+    const quitar = quitarImagenes ?? [];
     if (reemplazarImagenes && !nuevas.length) throw new BadRequestException('Selecciona al menos una imagen para reemplazar las actuales.');
     if (datos.categoryId) await this.category(datos.categoryId);
     const where = { id };
-    if (!nuevas.length) return this.prisma.product.update({ where, data: datos });
+    if (!nuevas.length && !quitar.length && imagenPrincipal == null) {
+      return this.prisma.product.update({ where, data: datos });
+    }
 
-    // Guarda los datos y el álbum juntos. El aislamiento protege el límite si dos ediciones llegan a la vez.
+    // Todos los cambios se guardan juntos, incluso si dos administradores editan a la vez.
     return this.prisma.$transaction(async tx => {
-      const producto = await tx.product.update({
+      const producto = await tx.product.findUniqueOrThrow({
         where,
-        data: reemplazarImagenes ? { ...datos, referenceImageSku: null } : datos,
+        select: { referenceImageSku: true, images: { select: { id: true } } },
       });
-      if (reemplazarImagenes) {
-        await tx.productImage.deleteMany({ where: { productId: id } });
-      } else {
-        const existentes = await tx.productImage.count({ where: { productId: id } });
-        if (existentes + Number(Boolean(producto.referenceImageSku)) + nuevas.length > 5) {
-          throw new BadRequestException('Puedes tener hasta 5 imágenes por producto.');
-        }
+      const idsActuales = producto.images.map(foto => foto.id);
+      if (producto.referenceImageSku) idsActuales.unshift(0);
+      const eliminar = reemplazarImagenes ? idsActuales : quitar;
+      const restantes = idsActuales.filter(fotoId => !eliminar.includes(fotoId));
+
+      // Cada foto que se quita o se marca como principal debe pertenecer al producto.
+      if (!quitar.every(fotoId => idsActuales.includes(fotoId))) {
+        throw new BadRequestException('Una de las fotos que quieres quitar ya no pertenece al producto.');
       }
-      await tx.productImage.createMany({ data: nuevas.map(foto => ({ ...foto, productId: id })) });
-      return producto;
+      if (imagenPrincipal != null && !restantes.includes(imagenPrincipal)) {
+        throw new BadRequestException('La foto principal debe estar entre las fotos que conservas.');
+      }
+      if (restantes.length + nuevas.length > 5) {
+        throw new BadRequestException('Puedes tener hasta 5 imágenes por producto.');
+      }
+      const idsSubidos = eliminar.filter(fotoId => fotoId !== 0);
+      if (idsSubidos.length) await tx.productImage.deleteMany({ where: { productId: id, id: { in: idsSubidos } } });
+      return tx.product.update({
+        where,
+        data: {
+          ...datos,
+          referenceImageSku: eliminar.includes(0) ? null : undefined,
+          primaryImageId: imagenPrincipal === 0 ? null : imagenPrincipal ?? undefined,
+          images: { create: nuevas },
+        },
+      });
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
   }
   // Comprueba que la categoría exista y esté activa antes de asociar un repuesto.

@@ -9,7 +9,7 @@ import { CatalogService } from './catalog.service';
 import { CatalogQuery, CategoryDto, ProductDto, StockDto, UpdateProductDto } from './catalog.dto';
 
 // La carga de fotos tiene los mismos límites al crear y al editar.
-const CargaFotos = FilesInterceptor('imagenes', 5, { limits: { fileSize: 5 * 1024 * 1024, files: 5, fields: 8 } });
+const CargaFotos = FilesInterceptor('imagenes', 5, { limits: { fileSize: 5 * 1024 * 1024, files: 5, fields: 10 } });
 
 @ApiTags('Catálogo') @Controller('products')
 export class ProductsController {
@@ -44,7 +44,7 @@ export class ProductsController {
   // Los archivos son opcionales en la edición y solo los puede enviar un administrador.
   @Patch(':id') @Roles('ADMIN') @ApiBearerAuth()
   @ApiConsumes('application/json', 'multipart/form-data')
-  @ApiOperation({ summary: 'Editar repuesto y agregar o reemplazar sus fotos' })
+  @ApiOperation({ summary: 'Editar repuesto, sus fotos y la imagen principal' })
   @UseInterceptors(CargaFotos)
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateProductDto, @UploadedFiles() fotos: { buffer: Buffer }[] = []) {
     return this.service.update(id, dto, fotos);

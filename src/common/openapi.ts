@@ -14,7 +14,7 @@ const object = (properties: Record<string, SchemaObject | ReferenceObject>, requ
 const enumString = (...values: string[]): SchemaObject => ({ type: 'string', enum: values });
 const page = (name: string): SchemaObject => object({ data: array(name), total: integer, page: integer, limit: { type: 'integer', example: 20 } });
 const cashProperties = { id: integer, openedById: integer, closedById: { ...integer, nullable: true }, openingAmount: money, countedAmount: { ...money, nullable: true }, expectedAmount: { ...money, nullable: true }, openedAt: date, closedAt: { ...date, nullable: true } };
-const productProperties = { id: integer, sku: { ...text, example: 'FRE-001' }, name: { ...text, example: 'Pastillas de freno delanteras' }, description: nullableText, salePrice: money, stock: integer, active: { type: 'boolean' } as SchemaObject, category: object({ id: integer, name: text }), referenceImageSku: nullableText, images: { type: 'array', items: object({ id: integer }) } as SchemaObject };
+const productProperties = { id: integer, sku: { ...text, example: 'FRE-001' }, name: { ...text, example: 'Pastillas de freno delanteras' }, description: nullableText, salePrice: money, stock: integer, active: { type: 'boolean' } as SchemaObject, category: object({ id: integer, name: text }), referenceImageSku: nullableText, primaryImageId: { ...integer, nullable: true }, images: { type: 'array', items: object({ id: integer }) } as SchemaObject };
 // DOCUMENTACIÓN: cada ruta declara su respuesta real, no altera el comportamiento de la API.
 // BLOQUE documentResponses: Agrega schemas, respuestas y errores a las operaciones Swagger; no modifica el comportamiento del servidor.
 export function documentResponses(doc: OpenAPIObject) {
@@ -26,7 +26,7 @@ export function documentResponses(doc: OpenAPIObject) {
     Category: object({ id: integer, name: { ...text, example: 'Frenos' }, active: { type: 'boolean' } }),
     PublicProduct: object(productProperties),
     InternalProduct: object({ ...productProperties, acquisitionCost: money }),
-    ProductRecord: object({ id: integer, categoryId: integer, sku: productProperties.sku, name: productProperties.name, description: nullableText, acquisitionCost: money, salePrice: money, stock: integer, active: { type: 'boolean' }, referenceImageSku: nullableText, createdAt: date }),
+    ProductRecord: object({ id: integer, categoryId: integer, sku: productProperties.sku, name: productProperties.name, description: nullableText, acquisitionCost: money, salePrice: money, stock: integer, active: { type: 'boolean' }, referenceImageSku: nullableText, primaryImageId: { ...integer, nullable: true }, createdAt: date }),
     ProductsPage: page('PublicProduct'), InternalProductsPage: page('InternalProduct'),
     Address: object({ id: integer, userId: integer, recipientName: text, phone: text, addressLine: text, reference: nullableText }),
     CartProduct: object({ id: integer, name: text, sku: text, salePrice: money, stock: integer, active: { type: 'boolean' } }),

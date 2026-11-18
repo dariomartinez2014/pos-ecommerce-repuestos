@@ -153,7 +153,10 @@ model Product {
   // La clave de la foto inicial se conserva aunque se edite el código del producto.
   referenceImageSku String? @map("reference_image_sku") @db.VarChar(60)
   // Las fotos se guardan junto al producto y sobreviven a un redeploy.
-  images ProductImage[]
+  images ProductImage[] @relation("ProductImages")
+  // Si se quita la foto principal, PostgreSQL limpia la selección.
+  primaryImageId Int? @map("primary_image_id")
+  primaryImage ProductImage? @relation("PrimaryProductImage", fields: [primaryImageId], references: [id], onDelete: SetNull)
   @@index([categoryId])
   @@map("products")
 }
@@ -161,7 +164,8 @@ model Product {
 model ProductImage {
   id Int @id @default(autoincrement())
   productId Int @map("product_id")
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product Product @relation("ProductImages", fields: [productId], references: [id], onDelete: Cascade)
+  primaryFor Product[] @relation("PrimaryProductImage")
   contentType String @map("content_type") @db.VarChar(32)
   bytes Bytes
   @@index([productId])

@@ -313,6 +313,47 @@ test('POS y e-commerce: reglas completas contra PostgreSQL', async t => {
       assert.equal(foto.status, 200);
       assert.equal(foto.headers.get('content-type'), 'image/png');
     });
+    await t.test('Foto principal y eliminación individual respetan el álbum y los permisos', async () => {
+      const { body: creado } = await req('POST', '/products', {
+        categoryId: category.id, sku: 'TEST-PORTADA', name: 'Repuesto de portada',
+        acquisitionCost: 10, salePrice: 25,
+      }, a, 201);
+      const ruta = '/products/' + creado.id;
+      await db.product.update({ where: { id: creado.id }, data: { referenceImageSku: 'FRE-001' } });
+      const consulta = async () => (await req('GET', ruta, undefined, null, 200)).body;
+      const archivo = new Blob([Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j7uoAAAAASUVORK5CYII=', 'base64')], { type: 'image/png' });
+      const agregar = new FormData();
+      agregar.append('imagenes', archivo, 'primera.png');
+      agregar.append('imagenes', archivo, 'segunda.png');
+      await req('PATCH', ruta, agregar, a, 200);
+      const [primera, segunda] = (await consulta()).images;
+
+      await req('PATCH', ruta, { imagenPrincipal: segunda.id }, cashier, 403);
+      await req('PATCH', ruta, { quitarImagenes: [primera.id] }, c, 403);
+      await req('PATCH', ruta, { imagenPrincipal: segunda.id }, a, 200);
+      assert.equal((await consulta()).primaryImageId, segunda.id);
+
+      const ajena = await db.productImage.findFirstOrThrow({ where: { productId: { not: creado.id } } });
+      await req('PATCH', ruta, { imagenPrincipal: ajena.id }, a, 400);
+      await req('PATCH', ruta, { quitarImagenes: [ajena.id] }, a, 400);
+      await req('PATCH', ruta, { quitarImagenes: [segunda.id], imagenPrincipal: segunda.id }, a, 400);
+      assert.deepEqual((await consulta()).images, [primera, segunda]);
+
+      // Quita la referencia y una foto mientras sube otra. La principal sigue siendo la conservada.
+      const cambios = new FormData();
+      cambios.append('quitarImagenes', '0,' + primera.id);
+      cambios.append('imagenes', archivo, 'nueva.png');
+      await req('PATCH', ruta, cambios, a, 200);
+      const editado = await consulta();
+      assert.equal(editado.referenceImageSku, null);
+      assert.equal(editado.primaryImageId, segunda.id);
+      assert.equal(editado.images.length, 2);
+      await req('GET', ruta + '/images/' + primera.id, undefined, null, 404);
+      await req('PATCH', ruta, { quitarImagenes: [segunda.id] }, a, 200);
+      const restante = await consulta();
+      assert.equal(restante.primaryImageId, null);
+      assert.deepEqual(restante.images, [editado.images[1]]);
+    });
     await t.test('Stock coincide con movimientos y Swagger documenta rutas', async () => {
       for (const p of await db.product.findMany()) {
         const sum = await db.inventoryMovement.aggregate({ where: { productId: p.id }, _sum: { quantityDelta: true } });

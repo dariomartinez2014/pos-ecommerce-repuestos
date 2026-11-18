@@ -1,7 +1,7 @@
 // Declara contratos de entrada, validadores y ejemplos Swagger. Un tipo TypeScript solo no valida un JSON recibido.
 
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
-import { IsBoolean, IsInt, IsNumber, IsOptional, IsString, Max, MaxLength, Min, MinLength, NotEquals } from 'class-validator';
+import { ArrayMaxSize, ArrayUnique, IsArray, IsBoolean, IsInt, IsNumber, IsOptional, IsString, Max, MaxLength, Min, MinLength, NotEquals } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 import { PageDto } from '../common/dto';
 // DTOs: los precios tienen dos decimales y las unidades son enteras.
@@ -41,6 +41,28 @@ export class UpdateProductDto extends PartialType(ProductDto) {
   @Transform(({ value }: { value: unknown }) => value === 'true' ? true : value === 'false' ? false : value)
   @IsBoolean()
   reemplazarImagenes?: boolean;
+
+  // El 0 identifica la foto de referencia; los otros números son IDs de fotos subidas.
+  @ApiPropertyOptional({ type: [Number], example: [0, 24] })
+  @IsOptional()
+  @Transform(({ value }: { value: unknown }) => typeof value === 'string'
+    ? value.split(',').map(id => /^\d+$/.test(id) ? Number(id) : id)
+    : value)
+  @IsArray()
+  @ArrayMaxSize(5)
+  @ArrayUnique()
+  @IsInt({ each: true })
+  @Min(0, { each: true })
+  @Max(2147483647, { each: true })
+  quitarImagenes?: number[];
+
+  @ApiPropertyOptional({ description: 'ID de una foto conservada o 0 para la referencia', example: 24 })
+  @IsOptional()
+  @numeroDeFormulario()
+  @IsInt()
+  @Min(0)
+  @Max(2147483647)
+  imagenPrincipal?: number;
 }
 
 export class StockDto {
