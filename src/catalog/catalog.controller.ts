@@ -8,7 +8,8 @@ import { CategoriesService } from './categories.service';
 import { CatalogService } from './catalog.service';
 import { CatalogQuery, CategoryDto, ProductDto, StockDto, UpdateProductDto } from './catalog.dto';
 
-// declaran rutas, permisos y DTOs; delegan reglas en el servicio.
+// La carga de fotos tiene los mismos límites al crear y al editar.
+const CargaFotos = FilesInterceptor('imagenes', 5, { limits: { fileSize: 5 * 1024 * 1024, files: 5, fields: 8 } });
 
 @ApiTags('Catálogo') @Controller('products')
 export class ProductsController {
@@ -36,13 +37,18 @@ export class ProductsController {
   @Post() @Roles('ADMIN') @ApiBearerAuth()
   @ApiConsumes('application/json', 'multipart/form-data')
   @ApiOperation({ summary: 'Crear repuesto con stock inicial cero y fotos opcionales' })
-  @UseInterceptors(FilesInterceptor('imagenes', 5, { limits: { fileSize: 5 * 1024 * 1024, files: 5, fields: 6 } }))
+  @UseInterceptors(CargaFotos)
   create(@Body() dto: ProductDto, @UploadedFiles() fotos: { buffer: Buffer }[] = []) {
     return this.service.create(dto, fotos);
   }
-  // Pasa los datos de esta ruta al método update del servicio.
-  @Patch(':id') @Roles('ADMIN') @ApiBearerAuth() @ApiOperation({ summary: 'Editar repuesto; no modifica ventas anteriores' })
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateProductDto) { return this.service.update(id, dto); }
+  // Los archivos son opcionales en la edición y solo los puede enviar un administrador.
+  @Patch(':id') @Roles('ADMIN') @ApiBearerAuth()
+  @ApiConsumes('application/json', 'multipart/form-data')
+  @ApiOperation({ summary: 'Editar repuesto y agregar o reemplazar sus fotos' })
+  @UseInterceptors(CargaFotos)
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateProductDto, @UploadedFiles() fotos: { buffer: Buffer }[] = []) {
+    return this.service.update(id, dto, fotos);
+  }
   // Pasa los datos de esta ruta al método update del servicio.
   @Delete(':id') @Roles('ADMIN') @ApiBearerAuth() @ApiOperation({ summary: 'Retirar del catálogo preservando su historial' })
   remove(@Param('id', ParseIntPipe) id: number) { return this.service.update(id, { active: false }); }

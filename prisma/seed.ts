@@ -46,7 +46,8 @@ async function seed() {
     for (const [sku, name, category, cost, price] of samples) {
       let product = await db.product.findUnique({ where: { sku } });
       if (!product) product = await db.$transaction(async tx => {
-        const p = await tx.product.create({ data: { sku, name, description: 'Repuesto de demostración. Confirmar compatibilidad del vehículo antes de comprar.', categoryId: categories[category].id, acquisitionCost: cost, salePrice: price, stock: 40 } });
+        // Los productos de demostración usan su foto de referencia del catálogo.
+        const p = await tx.product.create({ data: { sku, referenceImageSku: sku, name, description: 'Repuesto de demostración. Confirmar compatibilidad del vehículo antes de comprar.', categoryId: categories[category].id, acquisitionCost: cost, salePrice: price, stock: 40 } });
         await tx.inventoryMovement.create({ data: { productId: p.id, actorId: admin.id, type: 'INITIAL', quantityDelta: 40, reason: 'Inventario inicial de demostración' } });
         return p;
       });

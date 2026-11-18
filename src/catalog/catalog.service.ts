@@ -10,6 +10,7 @@ export const publicProduct = {
   id: true, sku: true, name: true, description: true, salePrice: true, stock: true, active: true,
   category: { select: { id: true, name: true } },
   // El catálogo solo lista identificadores. Cada imagen se descarga por separado.
+  referenceImageSku: true,
   images: { select: { id: true }, orderBy: { id: 'asc' } },
 } as const;
 
@@ -18,6 +19,10 @@ function tipoDeImagen(bytes: Buffer) {
   if (bytes.subarray(0, 3).equals(Buffer.from('ffd8ff', 'hex'))) return 'image/jpeg';
   if (bytes.length >= 16 && bytes.toString('ascii', 0, 4) === 'RIFF' && bytes.toString('ascii', 8, 12) === 'WEBP') return 'image/webp';
   throw new BadRequestException('Las imágenes deben ser JPG, PNG o WebP.');
+}
+
+function prepararFotos(fotos: { buffer: Buffer }[]) {
+  return fotos.map(({ buffer }) => ({ contentType: tipoDeImagen(buffer), bytes: Uint8Array.from(buffer) }));
 }
 
 @Injectable()
@@ -52,13 +57,33 @@ export class CatalogService {
   async create(dto: ProductDto, fotos: { buffer: Buffer }[]) {
     await this.category(dto.categoryId);
     // Revisa los bytes antes de guardar el producto y sus fotos en una sola operación.
-    const images = fotos.map(({ buffer }) => ({ contentType: tipoDeImagen(buffer), bytes: Uint8Array.from(buffer) }));
-    return this.prisma.product.create({ data: { ...dto, images: { create: images } } });
+    return this.prisma.product.create({ data: { ...dto, images: { create: prepararFotos(fotos) } } });
   }
-  // Aplica cambios permitidos por el DTO; comprueba propiedad o categoría según este servicio.
-  async update(id: number, dto: UpdateProductDto) {
-    if (dto.categoryId) await this.category(dto.categoryId);
-    return this.prisma.product.update({ where: { id }, data: dto });
+  async update(id: number, dto: UpdateProductDto, fotos: { buffer: Buffer }[] = []) {
+    const { reemplazarImagenes, ...datos } = dto;
+    const nuevas = prepararFotos(fotos);
+    if (reemplazarImagenes && !nuevas.length) throw new BadRequestException('Selecciona al menos una imagen para reemplazar las actuales.');
+    if (datos.categoryId) await this.category(datos.categoryId);
+    const where = { id };
+    if (!nuevas.length) return this.prisma.product.update({ where, data: datos });
+
+    // Guarda los datos y el álbum juntos. El aislamiento protege el límite si dos ediciones llegan a la vez.
+    return this.prisma.$transaction(async tx => {
+      const producto = await tx.product.update({
+        where,
+        data: reemplazarImagenes ? { ...datos, referenceImageSku: null } : datos,
+      });
+      if (reemplazarImagenes) {
+        await tx.productImage.deleteMany({ where: { productId: id } });
+      } else {
+        const existentes = await tx.productImage.count({ where: { productId: id } });
+        if (existentes + Number(Boolean(producto.referenceImageSku)) + nuevas.length > 5) {
+          throw new BadRequestException('Puedes tener hasta 5 imágenes por producto.');
+        }
+      }
+      await tx.productImage.createMany({ data: nuevas.map(foto => ({ ...foto, productId: id })) });
+      return producto;
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
   }
   // Comprueba que la categoría exista y esté activa antes de asociar un repuesto.
   private async category(id: number) {

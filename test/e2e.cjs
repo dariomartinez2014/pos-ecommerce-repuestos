@@ -262,6 +262,57 @@ test('POS y e-commerce: reglas completas contra PostgreSQL', async t => {
       await req('DELETE', '/products/' + creado.id, undefined, a, 200);
       await req('GET', '/products/' + creado.id + '/images/' + publicado.images[0].id, undefined, null, 404);
     });
+    await t.test('Editar fotos conserva la referencia, permite agregar y reemplaza con validación', async () => {
+      const archivo = new Blob([Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j7uoAAAAASUVORK5CYII=', 'base64')], { type: 'image/png' });
+      const { body: creado } = await req('POST', '/products', {
+        categoryId: category.id, sku: 'TEST-EDIT-FOTO', name: 'Repuesto de edición',
+        acquisitionCost: 12, salePrice: 25,
+      }, a, 201);
+      const ruta = '/products/' + creado.id;
+      // Simula el repuesto de un catálogo anterior con una foto de referencia.
+      await db.product.update({ where: { id: creado.id }, data: { referenceImageSku: 'FRE-001' } });
+      const consulta = async () => (await req('GET', ruta, undefined, null, 200)).body;
+      const editar = new FormData();
+      editar.append('imagenes', archivo, 'detalle.png');
+      await req('PATCH', ruta, editar, cashier, 403);
+      await req('PATCH', ruta, editar, c, 403);
+      await req('PATCH', ruta, editar, a, 200);
+
+      const agregado = await consulta();
+      assert.equal(agregado.referenceImageSku, 'FRE-001');
+      assert.equal(agregado.images.length, 1);
+      await req('PATCH', ruta, { sku: 'TEST-EDIT-FOTO-NUEVO', salePrice: 30 }, a, 200);
+      const editado = await consulta();
+      assert.equal(editado.sku, 'TEST-EDIT-FOTO-NUEVO');
+      assert.equal(editado.referenceImageSku, 'FRE-001');
+      assert.deepEqual(editado.images, agregado.images);
+
+      // El límite incluye la referencia. Un error conserva las fotos y los datos.
+      const demasiadas = new FormData();
+      demasiadas.append('name', 'Cambio que debe revertirse');
+      for (let i = 0; i < 4; i++) demasiadas.append('imagenes', archivo, i + '.png');
+      await req('PATCH', ruta, demasiadas, a, 400);
+      assert.equal((await consulta()).name, editado.name);
+      await req('PATCH', ruta, { reemplazarImagenes: true }, a, 400);
+      const reemplazo = new FormData();
+      reemplazo.append('reemplazarImagenes', 'true');
+      reemplazo.append('imagenes', new Blob(['texto'], { type: 'image/png' }), 'invalida.png');
+      await req('PATCH', ruta, reemplazo, a, 400);
+      assert.deepEqual((await consulta()).images, agregado.images);
+      assert.equal((await consulta()).referenceImageSku, 'FRE-001');
+
+      reemplazo.set('imagenes', archivo, 'portada.png');
+      reemplazo.append('imagenes', archivo, 'empaque.png');
+      await req('PATCH', ruta, reemplazo, a, 200);
+      const final = await consulta();
+      assert.equal(final.referenceImageSku, null);
+      assert.equal(final.images.length, 2);
+      assert.equal(Object.hasOwn(final, 'acquisitionCost'), false);
+      await req('GET', ruta + '/images/' + agregado.images[0].id, undefined, null, 404);
+      const foto = await fetch(base + '/api' + ruta + '/images/' + final.images[0].id);
+      assert.equal(foto.status, 200);
+      assert.equal(foto.headers.get('content-type'), 'image/png');
+    });
     await t.test('Stock coincide con movimientos y Swagger documenta rutas', async () => {
       for (const p of await db.product.findMany()) {
         const sum = await db.inventoryMovement.aggregate({ where: { productId: p.id }, _sum: { quantityDelta: true } });
@@ -271,6 +322,7 @@ test('POS y e-commerce: reglas completas contra PostgreSQL', async t => {
       assert.ok(doc.paths['/api/carts/{id}/checkout']);
       assert.ok(doc.components.securitySchemes.bearer);
       assert.ok(doc.components.schemas.CheckoutDto);
+      assert.ok(doc.paths['/api/products/{id}'].patch.requestBody.content['multipart/form-data'].schema);
       // CONTRATOS: toda ruta tiene esquema de éxito y errores normalizados.
       for (const item of Object.values(doc.paths)) for (const [method, operation] of Object.entries(item)) {
         if (!['get', 'post', 'put', 'patch', 'delete'].includes(method)) continue;

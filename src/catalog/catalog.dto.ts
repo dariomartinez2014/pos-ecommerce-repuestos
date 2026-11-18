@@ -34,6 +34,13 @@ export class ProductDto {
 export class UpdateProductDto extends PartialType(ProductDto) {
   // Indica si la cuenta o el registro sigue disponible.
   @ApiPropertyOptional() @IsOptional() @IsBoolean() active?: boolean;
+
+  // En multipart el indicador llega como texto.
+  @ApiPropertyOptional({ description: 'Reemplazar las fotos actuales; requiere archivos nuevos' })
+  @IsOptional()
+  @Transform(({ value }: { value: unknown }) => value === 'true' ? true : value === 'false' ? false : value)
+  @IsBoolean()
+  reemplazarImagenes?: boolean;
 }
 
 export class StockDto {

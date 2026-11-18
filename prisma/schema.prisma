@@ -150,6 +150,8 @@ model Product {
   orderItemsByProduct OrderItem[] @relation("OrderItem_product")
   // Colección de registros relacionados; no es una columna que guarde toda la lista.
   inventoryMovementsByProduct InventoryMovement[] @relation("InventoryMovement_product")
+  // La clave de la foto inicial se conserva aunque se edite el código del producto.
+  referenceImageSku String? @map("reference_image_sku") @db.VarChar(60)
   // Las fotos se guardan junto al producto y sobreviven a un redeploy.
   images ProductImage[]
   @@index([categoryId])
