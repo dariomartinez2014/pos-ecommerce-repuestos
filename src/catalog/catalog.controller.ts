@@ -3,6 +3,7 @@
 import { Body, Controller, Delete, Get, Header, Param, ParseIntPipe, Patch, Post, Query, StreamableFile, UploadedFiles, UseInterceptors } from '@nestjs/common';
 import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FilesInterceptor } from '@nestjs/platform-express';
+import { PageDto } from '../common/dto';
 import { Actor, CurrentUser, Public, Roles } from '../common/security';
 import { CategoriesService } from './categories.service';
 import { CatalogService } from './catalog.service';
@@ -52,6 +53,12 @@ export class ProductsController {
   // Pasa los datos de esta ruta al método update del servicio.
   @Delete(':id') @Roles('ADMIN') @ApiBearerAuth() @ApiOperation({ summary: 'Retirar del catálogo preservando su historial' })
   remove(@Param('id', ParseIntPipe) id: number) { return this.service.update(id, { active: false }); }
+  // Los ajustes son internos y solo el administrador puede consultar su historial.
+  @Get(':id/stock') @Roles('ADMIN') @ApiBearerAuth()
+  @ApiOperation({ summary: 'Historial paginado de ajustes manuales de inventario' })
+  stockHistory(@Param('id', ParseIntPipe) id: number, @Query() q: PageDto) {
+    return this.service.listAdjustments(id, q);
+  }
   // Pasa los datos de esta ruta al método adjust del servicio.
   @Post(':id/stock') @Roles('ADMIN') @ApiBearerAuth() @ApiOperation({ summary: 'Ajustar inventario con motivo y trazabilidad' })
   stock(@Param('id', ParseIntPipe) id: number, @Body() dto: StockDto, @CurrentUser() actor: Actor) { return this.service.adjust(id, dto, actor.id); }

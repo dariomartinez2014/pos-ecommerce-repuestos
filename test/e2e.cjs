@@ -354,6 +354,34 @@ test('POS y e-commerce: reglas completas contra PostgreSQL', async t => {
       assert.equal(restante.primaryImageId, null);
       assert.deepEqual(restante.images, [editado.images[1]]);
     });
+    await t.test('Historial de ajustes por producto con paginación y acceso de administrador', async () => {
+      const path = `/products/${product.id}/stock`;
+      await req('GET', path, undefined, null, 401);
+      await req('GET', path, undefined, cashier, 403);
+      await req('GET', path, undefined, c, 403);
+      await req('GET', '/products/999999/stock', undefined, a, 404);
+
+      // El ajuste inicial del producto y los dos ajustes nuevos son los únicos de esta consulta.
+      await req('POST', path, { delta: 2, reason: 'Reposición de prueba' }, a, 201);
+      await req('POST', path, { delta: -1, reason: 'Corrección de prueba' }, a, 201);
+      const primero = (await req('GET', path + '?page=1&limit=1', undefined, a, 200)).body;
+      assert.equal(primero.total, 3);
+      assert.equal(primero.data.length, 1);
+      assert.equal(primero.data[0].quantityDelta, -1);
+      assert.equal(primero.data[0].reason, 'Corrección de prueba');
+      assert.deepEqual(primero.data[0].actor, { name: 'Admin Test' });
+      assert.ok(Number.isFinite(Date.parse(primero.data[0].createdAt)));
+      const segundo = (await req('GET', path + '?page=2&limit=1', undefined, a, 200)).body;
+      assert.equal(segundo.data[0].quantityDelta, 2);
+      assert.equal(segundo.data[0].reason, 'Reposición de prueba');
+
+      const { body: sinAjustes } = await req('POST', '/products', {
+        categoryId: category.id, sku: 'TEST-SIN-AJUSTES', name: 'Repuesto sin ajustes',
+        acquisitionCost: 12, salePrice: 25,
+      }, a, 201);
+      const { body: vacio } = await req('GET', `/products/${sinAjustes.id}/stock`, undefined, a, 200);
+      assert.deepEqual(vacio, { data: [], total: 0, page: 1, limit: 20 });
+    });
     await t.test('Stock coincide con movimientos y Swagger documenta rutas', async () => {
       for (const p of await db.product.findMany()) {
         const sum = await db.inventoryMovement.aggregate({ where: { productId: p.id }, _sum: { quantityDelta: true } });

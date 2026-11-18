@@ -1,6 +1,7 @@
 // Busca repuestos, oculta costos públicos, comprueba categorías y ajusta stock con su movimiento contable.
 
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { PageDto } from '../common/dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { CatalogQuery, ProductDto, StockDto, UpdateProductDto } from './catalog.dto';
 import { Prisma } from '../generated/prisma/client';
@@ -108,6 +109,25 @@ export class CatalogService {
   // Comprueba que la categoría exista y esté activa antes de asociar un repuesto.
   private async category(id: number) {
     if (!(await this.prisma.category.findFirst({ where: { id, active: true } }))) throw new NotFoundException('Categoría no disponible');
+  }
+  // El historial incluye los ajustes manuales, incluso si se retiró el producto.
+  async listAdjustments(id: number, q: PageDto) {
+    const product = await this.prisma.product.findUnique({ where: { id }, select: { id: true } });
+    if (!product) throw new NotFoundException('Producto no encontrado');
+
+    const where: Prisma.InventoryMovementWhereInput = { productId: id, type: 'ADJUSTMENT' };
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.inventoryMovement.findMany({
+        where,
+        // Del responsable solo se necesita su nombre para identificar el ajuste.
+        select: { id: true, quantityDelta: true, reason: true, actor: { select: { name: true } }, createdAt: true },
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        skip: (q.page - 1) * q.limit,
+        take: q.limit,
+      }),
+      this.prisma.inventoryMovement.count({ where }),
+    ], { isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead });
+    return { data, total, page: q.page, limit: q.limit };
   }
   // el stock y su movimiento de auditoría cambian juntos.
   // Actualiza stock de forma condicional y guarda el movimiento de auditoría dentro de la misma transacción.
