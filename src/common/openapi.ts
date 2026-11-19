@@ -37,7 +37,14 @@ export function documentResponses(doc: OpenAPIObject) {
     OrderItem: object({ id: integer, productId: integer, productName: text, quantity: integer, unitPrice: money }),
     Payment: object({ id: integer, orderId: integer, recordedById: integer, method: enumString('CASH', 'CARD', 'TRANSFER'), amount: money, reference: nullableText, paidAt: date }),
     Order: object({ id: integer, receiptNumber: { ...text, example: 'REP-00000000-0000-4000-8000-000000000001' }, idempotencyKey: text, cartId: { ...integer, nullable: true }, customerId: { ...integer, nullable: true }, createdById: integer, cashSessionId: { ...integer, nullable: true }, channel: enumString('POS', 'WEB', 'SOCIAL'), status: enumString('PENDING', 'PAID', 'IN_TRANSIT', 'DELIVERED', 'CANCELLED', 'COMPLETED'), total: money, recipientName: nullableText, recipientPhone: nullableText, deliveryAddress: nullableText, deliveryReference: nullableText, createdAt: date, updatedAt: date, items: array('OrderItem'), payment: { ...ref('Payment'), nullable: true } }),
-    OrdersPage: page('Order'), CashSession: object(cashProperties),
+    OrdersPage: {
+      ...page('Order'),
+      properties: { ...page('Order').properties, resumen: object({
+        ventas: integer, totalCobrado: money, porMetodo: object({ CASH: money, CARD: money, TRANSFER: money }),
+      }) },
+      description: 'El resumen incluye todas las ventas del filtro POS completado para Administrador o Cajero. Los demás filtros devuelven la página habitual.',
+    },
+    CashSession: object(cashProperties),
     CashReport: object({ ...cashProperties, totalsByMethod: { type: 'array', items: object({ method: enumString('CASH', 'CARD', 'TRANSFER'), _sum: object({ amount: { ...money, nullable: true } }), _count: object({ _all: integer }) }) }, difference: { ...money, nullable: true } }),
   };
   doc.components ??= {};

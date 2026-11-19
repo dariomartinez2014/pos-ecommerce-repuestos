@@ -382,6 +382,46 @@ test('POS y e-commerce: reglas completas contra PostgreSQL', async t => {
       const { body: vacio } = await req('GET', `/products/${sinAjustes.id}/stock`, undefined, a, 200);
       assert.deepEqual(vacio, { data: [], total: 0, page: 1, limit: 20 });
     });
+    await t.test('Resumen POS suma pagos de todo el día, respeta roles y funciona entre páginas', async () => {
+      const cajero = await db.user.findUniqueOrThrow({ where: { email: 'cashier@test.local' } });
+      // El día comercial empieza a las 06:00 UTC en Guatemala.
+      const fixtures = [
+        ['inicio', '2030-01-05T06:00:00.000Z', admin.id, 'CASH', '10.10', 'POS', 'COMPLETED'],
+        ['tarjeta', '2030-01-05T18:00:00.000Z', cajero.id, 'CARD', '20.20', 'POS', 'COMPLETED'],
+        ['fin', '2030-01-06T05:59:59.999Z', cajero.id, 'TRANSFER', '30.30', 'POS', 'COMPLETED'],
+        ['antes', '2030-01-05T05:59:59.999Z', admin.id, 'CASH', '99.99', 'POS', 'COMPLETED'],
+        ['despues', '2030-01-06T06:00:00.000Z', admin.id, 'CASH', '88.88', 'POS', 'COMPLETED'],
+        ['redes', '2030-01-05T18:00:00.000Z', admin.id, 'TRANSFER', '77.77', 'SOCIAL', 'PAID'],
+        ['pendiente', '2030-01-05T18:00:00.000Z', admin.id, 'CASH', '66.66', 'SOCIAL', 'PENDING'],
+      ];
+      for (const [nombre, fecha, usuario, method, amount, channel, status] of fixtures) {
+        await db.order.create({ data: {
+          receiptNumber: 'TEST-RESUMEN-' + nombre, idempotencyKey: 'test-resumen-' + nombre,
+          createdById: usuario, channel, status, total: amount, createdAt: new Date(fecha),
+          cashSessionId: channel === 'POS' ? session.id : null,
+          ...(channel !== 'POS' ? { recipientName: 'Cliente de prueba', recipientPhone: '5555-0101', deliveryAddress: 'Dirección de prueba' } : {}),
+          payment: status === 'PENDING' ? undefined : { create: { recordedById: usuario, method, amount } },
+        } });
+      }
+      const path = '/orders?channel=POS&status=COMPLETED&date=2030-01-05&limit=1';
+      const esperado = { ventas: 3, totalCobrado: '60.60', porMetodo: { CASH: '10.10', CARD: '20.20', TRANSFER: '30.30' } };
+      const primero = (await req('GET', path, undefined, a, 200)).body;
+      assert.equal(primero.total, 3);
+      assert.equal(primero.data.length, 1);
+      assert.deepEqual(primero.resumen, esperado);
+      const segundo = (await req('GET', path + '&page=2', undefined, a, 200)).body;
+      assert.notEqual(primero.data[0].id, segundo.data[0].id);
+      assert.deepEqual(segundo.resumen, esperado);
+
+      const propio = (await req('GET', path, undefined, cashier, 200)).body;
+      assert.deepEqual(propio.resumen, { ventas: 2, totalCobrado: '50.50', porMetodo: { CASH: '0.00', CARD: '20.20', TRANSFER: '30.30' } });
+      const vacio = (await req('GET', path.replace('2030-01-05', '2030-02-05'), undefined, a, 200)).body;
+      assert.deepEqual(vacio.resumen, { ventas: 0, totalCobrado: '0.00', porMetodo: { CASH: '0.00', CARD: '0.00', TRANSFER: '0.00' } });
+      const publico = (await req('GET', path, undefined, c, 200)).body;
+      assert.equal(Object.hasOwn(publico, 'resumen'), false);
+      const general = (await req('GET', '/orders', undefined, a, 200)).body;
+      assert.equal(Object.hasOwn(general, 'resumen'), false);
+    });
     await t.test('Stock coincide con movimientos y Swagger documenta rutas', async () => {
       for (const p of await db.product.findMany()) {
         const sum = await db.inventoryMovement.aggregate({ where: { productId: p.id }, _sum: { quantityDelta: true } });

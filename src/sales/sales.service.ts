@@ -115,10 +115,25 @@ export class SalesService {
       const start = new Date(`${q.date}T00:00:00-06:00`);
       where.createdAt = { gte: start, lt: new Date(start.getTime() + 86400000) };
     }
-    const [data, total] = await this.prisma.$transaction([
-      this.prisma.order.findMany({ where, include: orderView, orderBy: { id: 'desc' }, skip: (q.page - 1) * q.limit, take: q.limit }), this.prisma.order.count({ where }),
-    ]);
-    return { data, total, page: q.page, limit: q.limit };
+    return this.prisma.$transaction(async tx => {
+      const [data, total] = await Promise.all([
+        tx.order.findMany({ where, include: orderView, orderBy: { id: 'desc' }, skip: (q.page - 1) * q.limit, take: q.limit }),
+        tx.order.count({ where }),
+      ]);
+      const pagina = { data, total, page: q.page, limit: q.limit };
+      if (actor.role === 'CUSTOMER' || q.channel !== 'POS' || q.status !== 'COMPLETED') return pagina;
+
+      // Usa el mismo día y los mismos permisos del listado, sin limitarse a su página.
+      const pagos = await tx.payment.groupBy({ by: ['method'], where: { order: where }, _sum: { amount: true } });
+      const porMetodo = { CASH: new Prisma.Decimal(0), CARD: new Prisma.Decimal(0), TRANSFER: new Prisma.Decimal(0) };
+      for (const pago of pagos) porMetodo[pago.method] = pago._sum.amount ?? new Prisma.Decimal(0);
+      const totalCobrado = porMetodo.CASH.plus(porMetodo.CARD).plus(porMetodo.TRANSFER);
+      return { ...pagina, resumen: {
+        ventas: total,
+        totalCobrado: totalCobrado.toFixed(2),
+        porMetodo: { CASH: porMetodo.CASH.toFixed(2), CARD: porMetodo.CARD.toFixed(2), TRANSFER: porMetodo.TRANSFER.toFixed(2) },
+      } };
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead });
   }
   // BLOQUE get: Busca el pedido y comprueba permiso de dueño, cajero o administrador.
   async get(id: number, actor: Actor) {
